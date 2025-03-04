@@ -1,6 +1,6 @@
-DEFAULT_ITER = 200
+DEFAULT_ITER = 300
 MAX_ITER = 1000
-EPSILON = 0.001
+EPSILON = 0.0001
 
 class Node:
     """Node for linked list implementation"""
