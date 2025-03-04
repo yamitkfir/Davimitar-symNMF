@@ -1,0 +1,40 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "kmeans - input 1",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/kmeans.py",
+            "console": "integratedTerminal",
+            "args": [
+                "3",
+                "600",
+                "${workspaceFolder}/Tests/HW1_tests/input_1.txt"
+            ]
+        },
+        {
+            "name": "kmeans - input 2",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/kmeans.py",
+            "console": "integratedTerminal",
+            "args": [
+                "7",
+                "${workspaceFolder}/Tests/HW1_tests/input_2.txt"
+            ]
+        },
+        {
+            "name": "kmeans - input 3",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/kmeans.py",
+            "console": "integratedTerminal",
+            "args": [
+                "15",
+                "300",
+                "${workspaceFolder}/Tests/HW1_tests/input_3.txt"
+            ]
+        }
+    ]
+}
