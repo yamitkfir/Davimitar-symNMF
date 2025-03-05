@@ -185,5 +185,6 @@ Returns an optimized H.
         H = new_H;
         new_H = tmp;
     }
+    free_matrix(new_H);
     return H;
 }
