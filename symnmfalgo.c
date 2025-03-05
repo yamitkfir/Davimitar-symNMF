@@ -128,13 +128,22 @@ If memory allocation error occurs, returns 1. if finished successfully, returns 
             return 1;
         }
     }
-    for(i=0; i<n; i++)
+    for(j=0; j<k; j++)
     {
-        for(j=0; j<k; j++)
+        for(s=0; s<k; s++) // Calculates the necessary column of (H^T)H for the denominator.
+        {
+            Ht_row = get_column(H, s);
+            if(Ht_row == 0)
+            {
+                free_matrix(HtH_col);
+                return 1;
+            }
+            HtH_col[s][0] = matrix_mult_cell(Ht_row, H, 0, j);
+            free_matrix(Ht_row);
+        }
+        for(i=0; i<n; i++)
         {
             numerator = matrix_mult_cell(W, H, i, j);
-            for(s=0; s<k; s++) // Calculates the denominator by multiplying the i-th row of H by the necessary column of (H^T)H.
-                HtH_col[s][0] = matrix_mult_cell(Ht_row, H, 0, j);
             denominator = matrix_mult_cell(H, HtH_col, i, 0);
             cell_multiplier = numerator / denominator;
             cell_multiplier += (1 - beta);
