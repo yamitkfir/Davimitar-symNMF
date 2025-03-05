@@ -35,6 +35,69 @@
                 "300",
                 "${workspaceFolder}/Tests/HW1_tests/input_3.txt"
             ]
+        },
+        {
+            "name": "symnmf - input_1",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/symnmf",
+            "args": ["sym", "Tests/HW1_tests/input_1.txt"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: gcc build active file",
+            "miDebuggerPath": "C:/mingw64/bin/gdb.exe"
+        },
+        {
+            "name": "symnmf - input_2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/symnmf",
+            "args": ["sym", "Tests/HW1_tests/input_2.txt"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: gcc build active file",
+            "miDebuggerPath": "C:/mingw64/bin/gdb.exe"
+        },
+        {
+            "name": "symnmf - input_3",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/symnmf",
+            "args": ["sym", "Tests/HW1_tests/input_3.txt"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "C/C++: gcc build active file",
+            "miDebuggerPath": "C:/mingw64/bin/gdb.exe"
         }
     ]
 }
