@@ -9,7 +9,6 @@ symnmf,sym,ddg,norm for Python */
 
 
 
-
 static PyObject* symnmf(PyObject* self, PyObject* args) {
     // TODO David
     printf("WIP\n");
