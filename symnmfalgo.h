@@ -17,6 +17,7 @@ int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
 double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); // A - m x n, B - n x k
-
+double** similarity_matrix(double** datapoints, int n, int d);
+double** normalized_similarity_matrix(double** sim_matrix, int n);
 
 #endif /* SYMNMFALGO_H */

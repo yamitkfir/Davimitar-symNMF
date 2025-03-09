@@ -1,4 +1,4 @@
-#include <math.h>
+#include "symnmfalgo.h"
 
 #define max_iter 300
 #define eps 1e-4
@@ -23,6 +23,9 @@ int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
 double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); // A - m x n, B - n x k
+
+//Helper functions
+double twoPointsNormTwo(double* point1, double* point2, int dimension);
 /*
 * Calculate the Diagonal Degree Matrix D for a given similarity matrix A.
 * Uses a 2D array representation (array of arrays).
@@ -293,3 +296,46 @@ double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k)
 
     return product;
 }
+
+double twoPointsNormTwo(double* point1, double* point2, int dimension){
+    double sum = 0;
+    for (int i = 0; i < dimension; i++){
+        sum += pow(*(point1 + i) - *(point2 + i), 2);
+    }
+    return sum;
+}
+
+double** similarity_matrix(double** datapoints, int n, int d){
+    double** A = calloc(n, sizeof(double*));
+    for (int i = 0; i < n; i++){
+        A[i] = calloc(n, sizeof(double));
+    }
+    for (int i = 0; i < n; i++){
+        for (int j = 0; j < n; j++){
+            if (i != j){
+                A[i][j] = exp(-twoPointsNormTwo(*(datapoints + i), *(datapoints + j), d) / 2);
+            } else {
+                A[i][j] = 0;
+            }
+        }
+    }
+    return A;
+}
+
+double** normalized_similarity_matrix(double** sim_matrix, int n){
+    double** D = diagonal_degree_matrix(sim_matrix, n);
+    double** D_neg_half = calloc(n, sizeof(double*));
+    for (int i = 0; i < n; i++){
+        D_neg_half[i] = calloc(n, sizeof(double));
+    }
+    for (int i = 0; i < n; i++){
+        D_neg_half[i][i] = 1 / sqrt(D[i][i]);
+    }
+    double** temp = multiplyMatrix(D_neg_half, sim_matrix, n, n, n);
+    double** normalized = multiplyMatrix(temp, D_neg_half, n, n, n);
+    free_matrix(D);
+    free_matrix(D_neg_half);
+    free_matrix(temp);
+    return normalized;
+}
+    
