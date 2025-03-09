@@ -12,9 +12,11 @@ def main():
     if len(sys.argv) != 4:
         print(ERROR_MSG)
         sys.exit(1)
-    
-    # TODO yamit: wrap with try-except
-    k = int(sys.argv[1])
+    try:
+        k = int(sys.argv[1])
+    except ValueError:
+        print(ERROR_MSG)
+        sys.exit(1)
     goal = sys.argv[2]
     file_name = sys.argv[3]
     

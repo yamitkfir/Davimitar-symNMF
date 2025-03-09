@@ -16,6 +16,14 @@
 double **read_data(const char *filename, int *n, int *d);
 void free_matrix(double **data, int n);
 void print_matrix(double **matrix, int rows, int cols);
+void exit_with_error();
+
+void exit_with_error() 
+/* note: FREE ALL DYNAMIC MEMORY BEFORE CALLING THIS FUNCTION! */
+{
+    printf(ERROR_MSG);
+    exit(1);
+}
 
 /* 
 read_data - Reads data points from a file
@@ -35,12 +43,10 @@ double **read_data(const char *filename, int *n, int *d) {
     /* Open file */
     fp = fopen(filename, "r");
     if (fp == NULL) {
-        printf("%s\n", ERROR_MSG);
-        exit(1);
+        exit_with_error();
     }
-    
     *n = 0; *d = 0; /* Count num of points and dimensions */
-    
+
     /* Read first line to count dimensions (=d) */
     if (fgets(line, sizeof(line), fp) != NULL) {
         token = strtok(line, SEPARATOR); /* Like "split" in py */
@@ -54,23 +60,18 @@ double **read_data(const char *filename, int *n, int *d) {
     while (fgets(line, sizeof(line), fp) != NULL) {
         (*n)++;
     }
-    
     /* Reset file pointer to beginning of file */
     rewind(fp);
-    
     /* Allocate memory for data points matrix */
     points = (double **)malloc(*n * sizeof(double *));
     if (points == NULL) {
-        printf("%s\n", ERROR_MSG);
         fclose(fp);
-        exit(1);
+        exit_with_error();
     }
-    
     /* Allocate memory for each row */
     for (i = 0; i < *n; i++) {
         points[i] = (double *)malloc(*d * sizeof(double));
         if (points[i] == NULL) {
-            printf("%s\n", ERROR_MSG);
             /* If theres a problem in allocation, 
             free previously allocated memory and exit */
             for (j = 0; j < i; j++) {
@@ -78,7 +79,7 @@ double **read_data(const char *filename, int *n, int *d) {
             }
             free(points);
             fclose(fp);
-            exit(1);
+            exit_with_error();
         }
     }
     
@@ -94,7 +95,6 @@ double **read_data(const char *filename, int *n, int *d) {
         }
         i++;
     }
-    
     fclose(fp);
     return points;
 }
@@ -105,11 +105,9 @@ double **read_data(const char *filename, int *n, int *d) {
  */
 void free_matrix(double **data, int n) {
     int i;
-    
     if (data == NULL) {
         return;
     }
-    
     for (i = 0; i < n; i++) {
         if (data[i] != NULL) {
             free(data[i]);
@@ -143,11 +141,9 @@ int main(int argc, char *argv[]) {
     char *goal = argv[1];
     char *filename = argv[2];
     
-    /* Check for correct numb of CMD args */
+    /* Check for correct num of CMD args */
     if (argc != 3) {
-        printf("%s %s %s\n", argv[0], argv[1], argv[2]);
-        printf("%s\n", ERROR_MSG);
-        return 1;
+        exit_with_error();
     }
     
     /* Read data points from input file */
@@ -161,34 +157,30 @@ int main(int argc, char *argv[]) {
     //     /* Calculate similarity matrix */
     //     result = sym(points, n, d);
     //     if (result == NULL) {
-    //         printf("%s\n", ERROR_MSG);
     //         free_matrix(points, n);
-    //         return 1;
+    //         exit_with_error();
     //     }
     //     print_matrix(result, n, n);
     // } else if (strcmp(goal, "ddg") == 0) {
     //     /* Calculate diagonal degree matrix */
     //     result = ddg(points, n, d);
     //     if (result == NULL) {
-    //         printf("%s\n", ERROR_MSG);
     //         free_matrix(points, n);
-    //         return 1;
+    //         exit_with_error();
     //     }
     //     print_matrix(result, n, n);
     // } else if (strcmp(goal, "norm") == 0) {
     //     /* Calculate normalized similarity matrix */
     //     result = norm(points, n, d);
     //     if (result == NULL) {
-    //         printf("%s\n", ERROR_MSG);
     //         free_matrix(points, n);
-    //         return 1;
+    //         exit_with_error();
     //     }
     //     print_matrix(result, n, n);
     // } else {
     //     /* Invalid goal */
-    //     printf("%s\n", ERROR_MSG);
     //     free_matrix(points, n);
-    //     return 1;
+    //     exit_with_error();
     // }
     
     /* free allocated memory */
