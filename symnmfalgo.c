@@ -22,7 +22,7 @@ double** optimizing_H(double** H, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
-
+double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); // A - m x n, B - n x k
 /*
 * Calculate the Diagonal Degree Matrix D for a given similarity matrix A.
 * Uses a 2D array representation (array of arrays).
@@ -275,4 +275,21 @@ double** optimizing_H(double** H, double** W)
     }
     free_matrix(new_H);
     return H;
+}
+
+double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k){
+    double** product = calloc(m, sizeof(double*));
+    for(int i = 0; i < m; i++){
+        product[i] = calloc(k, sizeof(double));
+    }
+
+    for (int i = 0; i < m; i++){
+        for (int j = 0; j < k; j++){
+            for (int l = 0; l < n; l++){
+                product[i][j] += matrixA[i][l] * matrixB[l][j];
+            }
+        }
+    }
+
+    return product;
 }
