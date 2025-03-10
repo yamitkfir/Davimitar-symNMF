@@ -92,17 +92,16 @@ double** similarity_matrix(double** datapoints, int n, int d) {
 }
 
 /*
-Given a pointer to a matrix M, frees its memory.
+Given a pointer to a matrix M and its len, frees its memory.
 Assumes the pointer M leads to a positive-sized array of pointers.
 */
-void free_matrix(double** M)
+void free_matrix(double** M, int len)
 {
     int i;
-    int len = sizeof(M) / sizeof(double*);
+    //int len = sizeof(M) / sizeof(double*); not working, sizeof(M) is a pointer size - constant.
     for (i=0; i < len; i++)
     {
-        if(M[i] != 0)
-            free(M[i]);
+        free(M[i]);
     }
     free(M);
 }
@@ -122,8 +121,8 @@ void exit_with_error()
 Given n*m matrix A, m*k matrix B, and two indices 0<=i<n, 0<=j<k.
 Returns the value in cell (i,j) of the matrix AB.
 */
-double matrix_mult_cell(double** A, double** B, int i, int j)
-{
+double matrix_mult_cell(double** A, double** B, int i, int j) 
+{   // Not working beacase of first line, can use full matrix multiplication instead
     int A_cols_num = sizeof(A[0]) / sizeof(double);
     int p;
     double val = 0;
@@ -152,7 +151,7 @@ Given two NON-EMPTY matrices A,B, calculates the Frobenius norm of A-B.
 Assumes both matrices have the same dimensions.
 */
 double frobenius_norm(double** A, double** B)
-{
+{ // Not working because of first and second lines
     int rows_num = sizeof(A) / sizeof(double*);
     int cols_num = sizeof(A[0]) / sizeof(double);
     int i,j;
@@ -168,7 +167,7 @@ Given a n*m matrix M and an int 0<=j<m, returns a 1*n matrix consisting only of 
 If memory allocation error occurs, returns a null pointer.
 */
 double** get_column(double** M, int j)
-{
+{   // Sizeof return a constant that is the size of a pointer, not the size of the array.
     int rows_num = sizeof(M) / sizeof(double*);
     int i;
     double** ret = (double**)calloc(sizeof(double*));
