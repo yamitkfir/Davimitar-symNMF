@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "symnmfalgo.h"
 
 #define max_iter 300
@@ -12,20 +15,21 @@ TODO init_H()
 */
 
 /* Function declarations */
-void free_matrix(double** M);
-void exit_with_error();
-double matrix_mult_cell(double** A, double** B, int i, int j);
 double squared_euclidean_dist(double* point1, double* point2, int dimension);
-double frobenius_norm(double** A, double** B);
-double** get_column(double** M, int j);
-double** optimizing_H(double** H, double** W);
+double** get_column(double** M, int rows_num, int j);
+double** optimizing_H(double** H, int rows_num, int cols_num, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
-double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); // A - m x n, B - n x k
 
-//Helper functions
-double twoPointsNormTwo(double* point1, double* point2, int dimension);
+/* Helper functions */
+double sq_euclidian_norm(double* point1, double* point2, int dimension);
+double frobenius_norm(double** A, int rows_num, int cols_num, double** B);
+void free_matrix(double** M, int len);
+double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
+double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
+void exit_with_error();
+
 /*
 * Calculate the Diagonal Degree Matrix D for a given similarity matrix A.
 * Uses a 2D array representation (array of arrays).
@@ -40,11 +44,8 @@ double** diagonal_degree_matrix(double** A, int n) {
     for (i = 0; i < n; i++) {
         D[i] = (double*)calloc(n, sizeof(double));
         if (D[i] == NULL) {
-            /* Free previously allocated memory before exiting */
-            for (int k = 0; k < i; k++) {
-                free(D[k]);
-            }
-            free(D); exit_with_error();
+            free_matrix(D, n);
+            exit_with_error();
         }
     }
     /* Calc degrees */
@@ -70,11 +71,8 @@ double** similarity_matrix(double** datapoints, int n, int d) {
     for (i = 0; i < n; i++) {
         A[i] = (double*)malloc(n * sizeof(double));
         if (A[i] == NULL) {
-            /* If allocation failed, free previously allocated memory before exiting */
-            for (int k = 0; k < i; k++) {
-                free(A[k]);
-            }
-            free(A); exit_with_error();
+            free_matrix(A, n);
+            exit_with_error();
         }
     }
     /* Compute similarity matrix values */
@@ -92,16 +90,16 @@ double** similarity_matrix(double** datapoints, int n, int d) {
 }
 
 /*
-Given a pointer to a matrix M and its len, frees its memory.
+Given a pointer to a matrix M and the amount of rows in it, frees its memory (Every allocated row, and the row pointers array).
 Assumes the pointer M leads to a positive-sized array of pointers.
 */
-void free_matrix(double** M, int len)
+void free_matrix(double** M, int row_num)
 {
     int i;
-    //int len = sizeof(M) / sizeof(double*); not working, sizeof(M) is a pointer size - constant.
-    for (i=0; i < len; i++)
+    for (i=0; i < row_num; i++)
     {
-        free(M[i]);
+        if(M[i] != NULL)
+            free(M[i]);
     }
     free(M);
 }
@@ -109,21 +107,21 @@ void free_matrix(double** M, int len)
 /*
 To be called in case of an error.
 Prints an error message and terminates the program.
+Note: FREE ALL DYNAMIC MEMORY BEFORE CALLING THIS FUNCTION!
 */
 void exit_with_error() 
-/* note: FREE ALL DYNAMIC MEMORY BEFORE CALLING THIS FUNCTION! */
 {
     printf(ERROR_MSG);
     exit(1);
 }
 
 /*
-Given n*m matrix A, m*k matrix B, and two indices 0<=i<n, 0<=j<k.
+Given n*m matrix A, the value of m, a m*k matrix B, and two indices 0<=i<n, 0<=j<k.
 Returns the value in cell (i,j) of the matrix AB.
+This function is used to calculate H every iteration to save memory, instead of allocating and freeing lots of matrices every time.
 */
-double matrix_mult_cell(double** A, double** B, int i, int j) 
-{   // Not working beacase of first line, can use full matrix multiplication instead
-    int A_cols_num = sizeof(A[0]) / sizeof(double);
+double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j) 
+{   
     int p;
     double val = 0;
     for(p=0; p < A_cols_num; p++)
@@ -147,13 +145,11 @@ double squared_euclidean_dist(double* point1, double* point2, int dimension)
 }
 
 /*
-Given two NON-EMPTY matrices A,B, calculates the Frobenius norm of A-B.
+Given two NON-EMPTY matrices A,B and A's dimensions, calculates the Frobenius norm of A-B.
 Assumes both matrices have the same dimensions.
 */
-double frobenius_norm(double** A, double** B)
-{ // Not working because of first and second lines
-    int rows_num = sizeof(A) / sizeof(double*);
-    int cols_num = sizeof(A[0]) / sizeof(double);
+double frobenius_norm(double** A, int rows_num, int cols_num, double** B)
+{ 
     int i,j;
     double sum = 0;
     for(i=0; i < rows_num; i++)
@@ -163,21 +159,20 @@ double frobenius_norm(double** A, double** B)
 }
 
 /*
-Given a n*m matrix M and an int 0<=j<m, returns a 1*n matrix consisting only of M's j-th column.
+Given a n*m matrix M, its amount of rows and an int 0<=j<m, returns a 1*n matrix consisting only of M's j-th column.
 If memory allocation error occurs, returns a null pointer.
 */
-double** get_column(double** M, int j)
-{   // Sizeof return a constant that is the size of a pointer, not the size of the array.
-    int rows_num = sizeof(M) / sizeof(double*);
+double** get_column(double** M, int rows_num, int j)
+{   
     int i;
-    double** ret = (double**)calloc(sizeof(double*));
-    if (ret == 0)
-        return 0;
+    double** ret = (double**)malloc(1 * sizeof(double*));
+    if (ret == NULL)
+        return NULL;
     ret[0] = (double*)malloc(rows_num * sizeof(double));
-    if (ret[0] == 0)
+    if (ret[0] == NULL)
     {
-        free_matrix(ret);
-        return 0;
+        free_matrix(ret, 1);
+        return NULL;
     }
     for(i=0; i < rows_num; i++)
         ret[0][i] = M[i][j];
@@ -194,18 +189,17 @@ If memory allocation error occurs, returns 1. if finished successfully, returns 
 int update_H(double** W, double** H, double** new_H, int n, int k)
 {
     double numerator, denominator, cell_multiplier;
-    double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. */
+    double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. Will be a 1*n matrix.*/
     int i,j,s;
-    /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
-    double** HtH_col = (double**)calloc(k*sizeof(double*));
-    if(HtH_col == 0)
+    double** HtH_col = (double**)malloc(k*sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
+    if(HtH_col == NULL)
         return 1;
     for(j=0; j<k; j++)
     {
         HtH_col[j] = (double*)malloc(sizeof(double));
-        if(HtH_col[0][j] == 0)
+        if(HtH_col[0][j] == NULL)
         {
-            free_matrix(HtH_col);
+            free_matrix(HtH_col, k);
             return 1;
         }
     }
@@ -213,19 +207,19 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
     {
         for(s=0; s<k; s++) /* Calculates the necessary column of (H^T)H for the denominator. */
         {
-            Ht_row = get_column(H, s);
-            if(Ht_row == 0)
+            Ht_row = get_column(H, n, s);
+            if(Ht_row == NULL)
             {
-                free_matrix(HtH_col);
+                free_matrix(HtH_col, k);
                 return 1;
             }
-            HtH_col[s][0] = matrix_mult_cell(Ht_row, H, 0, j);
-            free_matrix(Ht_row);
+            HtH_col[s][0] = matrix_mult_cell(Ht_row, n, H, 0, j);
+            free_matrix(Ht_row, 1);
         }
         for(i=0; i<n; i++)
         {
-            numerator = matrix_mult_cell(W, H, i, j);
-            denominator = matrix_mult_cell(H, HtH_col, i, 0);
+            numerator = matrix_mult_cell(W, n, H, i, j);
+            denominator = matrix_mult_cell(H, k, HtH_col, i, 0);
             cell_multiplier = numerator / denominator;
             cell_multiplier += (1 - beta);
             new_H[i][j] = H[i][j]*cell_multiplier;
@@ -235,59 +229,61 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
 }
 
 /*
-Given a starting matrix H and a graph laplacian W, perform the optimization algorithm in the instructions.
+Given a starting matrix H, its dimensions and a graph laplacian W, perform the optimization algorithm in the instructions.
 Returns an optimized H.
 */
-double** optimizing_H(double** H, double** W)
+double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
-    int rows_num = sizeof(H) / sizeof(double*); /* Number of rows in H */
-    int cols_num = sizeof(H[0]) / sizeof(double); /* Number of columns in H */
     int i, j;
     double** tmp;
-    double** new_H = (double**)calloc(rows_num * sizeof(double*));
-    if (new_H == 0)
+    double** new_H = (double**)malloc(rows_num * sizeof(double*));
+    if (new_H == NULL)
     {
-        free_matrix(H);
+        free_matrix(H, rows_num);
         exit_with_error();
     }
-    for (j=0; j < rows_num; i++)
+    for (j=0; j < rows_num; j++)
     {
         new_H[j] = (double*)malloc(cols_num * sizeof(double));
-        if(new_H[j] == 0)
+        if(new_H[j] == NULL)
         {
-            free_matrix(H);
-            free_matrix(new_H);
+            free_matrix(H, rows_num);
+            free_matrix(new_H, rows_num);
             exit_with_error();
         }
     }
     /* Does the actual work */
     for (i=1; i<=max_iter; i++)
     {
-        if(update_H(W, H, new_H, rows_num, cols_num) == 1)
+        if(update_H(W, H, new_H, rows_num, cols_num) == 1) /* Updates H and puts the updated version into new_H. 1 will be returned iff an error occurs during the update. */
         {
-            free_matrix(H);
-            free_matrix(new_H);
+            free_matrix(H, rows_num);
+            free_matrix(new_H, rows_num);
             exit_with_error();
         }
-        if(frobenius_norm(new_H, H) < eps) /* We have reached convergence - end the loop. */
+        if(frobenius_norm(new_H, rows_num, cols_num , H) < eps) /* We have reached convergence - end the loop. */
             i = max_iter + 1;
         tmp = H; /* Always makes the new matrix be in pointer H for code consistency. */
         H = new_H;
         new_H = tmp;
     }
-    free_matrix(new_H);
+    free_matrix(new_H, rows_num);
     return H;
 }
 
+/*
+Receives a m*n matrix A and a n*k matrix B alongside their dimensions, and returns the product matrix AB.
+*/
 double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k){
     double** product = calloc(m, sizeof(double*));
-    for(int i = 0; i < m; i++){
+    int i, j, l;
+    for(i = 0; i < m; i++){
         product[i] = calloc(k, sizeof(double));
     }
 
-    for (int i = 0; i < m; i++){
-        for (int j = 0; j < k; j++){
-            for (int l = 0; l < n; l++){
+    for (i = 0; i < m; i++){
+        for (j = 0; j < k; j++){
+            for (l = 0; l < n; l++){
                 product[i][j] += matrixA[i][l] * matrixB[l][j];
             }
         }
@@ -296,23 +292,41 @@ double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k)
     return product;
 }
 
-double twoPointsNormTwo(double* point1, double* point2, int dimension){
+/*
+Receives two points (Represented as vectors) and their size, and returns the square of the euclidian norm of the vectors' difference.
+Assumes both vectors are of the same dimension.
+*/
+double sq_euclidian_norm(double* point1, double* point2, int dimension){
     double sum = 0;
-    for (int i = 0; i < dimension; i++){
+    int i;
+    for (i = 0; i < dimension; i++){
         sum += pow(*(point1 + i) - *(point2 + i), 2);
     }
     return sum;
 }
 
+/*
+Given an array of arrays representing points, the amount of points (n) and the dimension of every point (d),
+returns the n*n similarity matrix of the points.
+Assumes all points are of dimension d.
+*/
 double** similarity_matrix(double** datapoints, int n, int d){
     double** A = calloc(n, sizeof(double*));
-    for (int i = 0; i < n; i++){
+    int i, j;
+    if(A == NULL)
+        exit_with_error();
+    for (i = 0; i < n; i++){
         A[i] = calloc(n, sizeof(double));
+        if(A[i] == NULL)
+        {
+            free_matrix(A, n);
+            exit_with_error();
+        }
     }
-    for (int i = 0; i < n; i++){
-        for (int j = 0; j < n; j++){
+    for (i = 0; i < n; i++){
+        for (j = 0; j < n; j++){
             if (i != j){
-                A[i][j] = exp(-twoPointsNormTwo(*(datapoints + i), *(datapoints + j), d) / 2);
+                A[i][j] = exp(-sq_euclidian_norm(*(datapoints + i), *(datapoints + j), d) / 2);
             } else {
                 A[i][j] = 0;
             }
@@ -321,20 +335,33 @@ double** similarity_matrix(double** datapoints, int n, int d){
     return A;
 }
 
+/*
+Given an n*n similarity matrix and the value of n, returns the normalized similarity matrix.
+*/
 double** normalized_similarity_matrix(double** sim_matrix, int n){
+    int i;
     double** D = diagonal_degree_matrix(sim_matrix, n);
     double** D_neg_half = calloc(n, sizeof(double*));
-    for (int i = 0; i < n; i++){
-        D_neg_half[i] = calloc(n, sizeof(double));
+    if(D_neg_half == NULL)
+    {
+        free_matrix(D, n);
+        exit_with_error();
     }
-    for (int i = 0; i < n; i++){
+    for (i = 0; i < n; i++){
+        D_neg_half[i] = calloc(n, sizeof(double));
+        if(D_neg_half[i] == NULL)
+        {
+            free_matrix(D, n); free_matrix(D_neg_half, n);
+            exit_with_error();
+        }
+    }
+    for (i = 0; i < n; i++){
         D_neg_half[i][i] = 1 / sqrt(D[i][i]);
     }
     double** temp = multiplyMatrix(D_neg_half, sim_matrix, n, n, n);
     double** normalized = multiplyMatrix(temp, D_neg_half, n, n, n);
-    free_matrix(D);
-    free_matrix(D_neg_half);
-    free_matrix(temp);
+    free_matrix(D, n);
+    free_matrix(D_neg_half, n);
+    free_matrix(temp, n);
     return normalized;
 }
-    
