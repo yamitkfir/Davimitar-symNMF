@@ -7,6 +7,7 @@ symnmf,sym,ddg,norm for Python */
 
 #define ERR_LIST_FORMAT "Expected a list of lists of floats"
 #define ERR_LIST_ITEM_FORMAT "List items must be floats"
+#define ERR_SYMNF_FORMAT "Input must be two matrixes"
 
 /* Function declarations - for module use only */
 double** getDataPoints(PyObject* lst);
@@ -22,7 +23,37 @@ Stages 1.4 and 1.5 in the instructions.
 static PyObject* symnmf(PyObject* self, PyObject* args) {
     // TODO David
     printf("WIP\n");
-    Py_RETURN_NONE;
+    PyObject* lst;
+    if(!PyArg_ParseTuple(args, "O", &lst)) {
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        Py_RETURN_NONE;
+    }
+    if (!PyList_Check(lst)) {
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        Py_RETURN_NONE;
+    }
+    if(PyList_Size(lst) != 2) {
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        Py_RETURN_NONE;
+    }
+    if(!PyList_Check(PyList_GetItem(lst, 0)) || !PyList_Check(PyList_GetItem(lst, 1))) {
+        PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
+        Py_RETURN_NONE;
+    }
+    double** H = getDataPoints(PyList_GetItem(lst, 0));
+    double** W = getDataPoints(PyList_GetItem(lst, 1));
+    if(H == NULL || W == NULL) {
+        PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
+        Py_RETURN_NONE;
+    }
+    int n = PyList_Size(PyList_GetItem(lst, 0));
+    int k = PyList_Size(PyList_GetItem(PyList_GetItem(lst, 0, 0)));
+    double** new_H = optimizing_H(H, n, k, W); // waiting for Response to determine rows v cols
+    freeDataPoints(H, n);
+    freeDataPoints(W, n);
+    PyObject* ret = MatrixToPyList(new_H, n, k);
+    free_matrix(new_H);
+    return ret;
 }
 
 /*
