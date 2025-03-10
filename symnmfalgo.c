@@ -35,7 +35,7 @@ void exit_with_error();
 * Uses a 2D array representation (array of arrays).
 */
 double** diagonal_degree_matrix(double** A, int n) {
-    double** D = (double**)malloc(n * sizeof(double*));
+    double** D = (double**)calloc(n * sizeof(double*));
     int i, j; double sum;
     if (D == NULL) {
         exit_with_error();
@@ -62,7 +62,7 @@ double** diagonal_degree_matrix(double** A, int n) {
 
 /* TODO free_matrix(A) once done with it! */
 double** similarity_matrix(double** datapoints, int n, int d) {
-    double** A = (double**)malloc(n * sizeof(double*));
+    double** A = (double**)calloc(n * sizeof(double*));
     int i, j; double dist;
     if (A == NULL) {
         exit_with_error();
@@ -165,7 +165,7 @@ If memory allocation error occurs, returns a null pointer.
 double** get_column(double** M, int rows_num, int j)
 {   
     int i;
-    double** ret = (double**)malloc(1 * sizeof(double*));
+    double** ret = (double**)calloc(1 * sizeof(double*));
     if (ret == NULL)
         return NULL;
     ret[0] = (double*)malloc(rows_num * sizeof(double));
@@ -191,7 +191,7 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
     double numerator, denominator, cell_multiplier;
     double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. Will be a 1*n matrix.*/
     int i,j,s;
-    double** HtH_col = (double**)malloc(k*sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
+    double** HtH_col = (double**)calloc(k*sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
     if(HtH_col == NULL)
         return 1;
     for(j=0; j<k; j++)
@@ -236,7 +236,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
     int i, j;
     double** tmp;
-    double** new_H = (double**)malloc(rows_num * sizeof(double*));
+    double** new_H = (double**)calloc(rows_num * sizeof(double*));
     if (new_H == NULL)
     {
         free_matrix(H, rows_num);
