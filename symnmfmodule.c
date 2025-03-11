@@ -21,8 +21,6 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
-    // TODO David
-    printf("WIP\n");
     PyObject* lst;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
@@ -63,7 +61,6 @@ Given a matrix of datapoints, calculate the similarity matrix.
 Stage 1.1 in the instructions.
 */
 static PyObject* sym(PyObject* self, PyObject* args) {
-    printf("WIP\n"); /* To Delete */
     PyObject* lst;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
@@ -93,7 +90,6 @@ Given a Datapoints matrix, calculate the Diagonal Degree Matrix.
 Stage 1.2 in the instructions.
 */
 static PyObject* ddg(PyObject* self, PyObject* args) {
-    printf("WIP\n");
     PyObject* lst;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);

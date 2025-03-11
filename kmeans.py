@@ -1,6 +1,9 @@
 DEFAULT_ITER = 300
 MAX_ITER = 1000
 EPSILON = 0.0001
+ERROR_MSG = "An Error Has Occurred"
+ITER_MSG = "Invalid maximum iteration!"
+CLUSTER_MSG = "Invalid number of clusters!"
 
 class Node:
     """Node for linked list implementation"""
@@ -46,7 +49,7 @@ def read_file(file_name):
                     original_points.append(vector)
         return original_points
     except:
-        print("An Error Has Occurred")
+        print(ERROR_MSG)
         sys.exit(1)
 
 
@@ -113,12 +116,12 @@ def kmeans_general(K, max_iter, input_filename, epsilon = EPSILON):
     # Read data
     original_points = read_file(input_filename)
     if original_points.size == 0:
-        print("An Error Has Occurred")
+        print(ERROR_MSG)
         sys.exit(1)
     
     # Validate K
     if K <= 1 or K >= original_points.size:
-        print("Invalid number of clusters!")
+        print(CLUSTER_MSG)
         sys.exit(1)
     
     # Initialize centroids with first K points
@@ -170,19 +173,19 @@ def print_results(centroids):
 def main():
     # input must be 3 or 4 arguments
     if len(sys.argv) not in [3, 4]:
-        print("An Error Has Occurred")
+        print(ERROR_MSG)
         sys.exit(1)
         
     try:
         K = int(sys.argv[1])
     except ValueError:
-        print("Invalid number of clusters!")
+        print(CLUSTER_MSG)
         sys.exit(1)
     try:
         # "if iter is not provided, use default value"
         iter = int(sys.argv[2]) if len(sys.argv) == 4 else DEFAULT_ITER
     except ValueError:
-        print("Invalid maximum iteration!")
+        print(ITER_MSG)
         sys.exit(1)
         
     try:
@@ -190,7 +193,7 @@ def main():
         
         # Validate iter
         if iter <= 1 or iter >= MAX_ITER:
-            print("Invalid maximum iteration!")
+            print(ITER_MSG)
             sys.exit(1)
             
         # Run algorithm
@@ -200,7 +203,7 @@ def main():
         print_results(final_centroids)
         
     except ValueError:
-        print("An Error Has Occurred")
+        print(ERROR_MSG)
         sys.exit(1)
 
 

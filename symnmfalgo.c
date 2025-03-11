@@ -9,8 +9,6 @@
 #define ERROR_MSG "An Error Has Occurred\n"
 
 /* 
-TODO diagonal_matrix()
-TODO David: normalized_similarity_matrix()
 TODO init_H()
 */
 
@@ -21,12 +19,12 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
+double** normalized_similarity_matrix(double** sim_matrix, int n);
 
 /* Helper functions */
-double sq_euclidian_norm(double* point1, double* point2, int dimension);
 double frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
-double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
+double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
 void exit_with_error();
 
@@ -60,35 +58,6 @@ double** diagonal_degree_matrix(double** A, int n) {
     return D;
 }
 
-/* TODO free_matrix(A) once done with it! */
-double** similarity_matrix(double** datapoints, int n, int d) {
-    double** A = (double**)malloc(n * sizeof(double*));
-    int i, j; double dist;
-    if (A == NULL) {
-        exit_with_error();
-    }
-    /* Allocate memory for each row */
-    for (i = 0; i < n; i++) {
-        A[i] = (double*)malloc(n * sizeof(double));
-        if (A[i] == NULL) {
-            free_matrix(A, i);
-            exit_with_error();
-        }
-    }
-    /* Compute similarity matrix values */
-    for (i = 0; i < n; i++) {
-        for (j = 0; j < n; j++) {
-            if (i != j) {
-                dist = squared_euclidean_dist(datapoints[i], datapoints[j], d);
-                A[i][j] = exp(-dist/2);
-            } else {
-                A[i][j] = 0.0;
-            }
-        }
-    }
-    return A;
-}
-
 /*
 Given a pointer to a matrix M and the amount of rows in it, frees its memory (Every allocated row, and the row pointers array).
 Assumes the pointer M leads to a positive-sized array of pointers.
@@ -105,9 +74,8 @@ void free_matrix(double** M, int row_num)
 }
 
 /*
-To be called in case of an error.
-Prints an error message and terminates the program.
-Note: FREE ALL DYNAMIC MEMORY BEFORE CALLING THIS FUNCTION!
+To be called in case of an error. Prints an error msg and terminates program.
+Note: free all dynamic memory BEFORE calling this func!
 */
 void exit_with_error() 
 {
@@ -182,8 +150,7 @@ double** get_column(double** M, int rows_num, int j)
 
 /*
 Given a n*n graph laplacian W, a current n*k iteration matrix H and a pointer to an ALREADY EXISTING n*k matrix new_H,
-changes the values in the new_H matrix IN PLACE to be the new values, as per the instructions
-(See 1.4.2).
+changes the values in the new_H matrix IN PLACE to be the new values, as per the instructions (See 1.4.2).
 If memory allocation error occurs, returns 1. if finished successfully, returns 0.
 */
 int update_H(double** W, double** H, double** new_H, int n, int k)
@@ -274,7 +241,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 /*
 Receives a m*n matrix A and a n*k matrix B alongside their dimensions, and returns the product matrix AB.
 */
-double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k){
+double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k){
     double** product = calloc(m, sizeof(double*));
     int i, j, l;
     for(i = 0; i < m; i++){
@@ -293,22 +260,9 @@ double** multiplyMatrix(double** matrixA, double** matrixB, int m, int n, int k)
 }
 
 /*
-Receives two points (Represented as vectors) and their size, and returns the square of the euclidian norm of the vectors' difference.
-Assumes both vectors are of the same dimension.
-*/
-double sq_euclidian_norm(double* point1, double* point2, int dimension){
-    double sum = 0;
-    int i;
-    for (i = 0; i < dimension; i++){
-        sum += pow(*(point1 + i) - *(point2 + i), 2);
-    }
-    return sum;
-}
-
-/*
 Given an array of arrays representing points, the amount of points (n) and the dimension of every point (d),
-returns the n*n similarity matrix of the points.
-Assumes all points are of dimension d.
+returns the n*n similarity matrix of the points. Assumes all points are of dimension d.
+TODO free_matrix(A) once done with it!
 */
 double** similarity_matrix(double** datapoints, int n, int d){
     double** A = malloc(n * sizeof(double*));
@@ -326,7 +280,7 @@ double** similarity_matrix(double** datapoints, int n, int d){
     for (i = 0; i < n; i++){
         for (j = 0; j < n; j++){
             if (i != j){
-                A[i][j] = exp(-sq_euclidian_norm(*(datapoints + i), *(datapoints + j), d) / 2);
+                A[i][j] = exp(-squared_euclidian_norm(*(datapoints + i), *(datapoints + j), d) / 2);
             } else {
                 A[i][j] = 0;
             }
@@ -358,8 +312,8 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     for (i = 0; i < n; i++){
         D_neg_half[i][i] = 1 / sqrt(D[i][i]);
     }
-    double** temp = multiplyMatrix(D_neg_half, sim_matrix, n, n, n);
-    double** normalized = multiplyMatrix(temp, D_neg_half, n, n, n);
+    double** temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
+    double** normalized = multiply_matrix(temp, D_neg_half, n, n, n);
     free_matrix(D, n);
     free_matrix(D_neg_half, n);
     free_matrix(temp, n);

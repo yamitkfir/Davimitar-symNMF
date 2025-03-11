@@ -148,9 +148,6 @@ int main(int argc, char *argv[]) {
     
     /* Read data points from input file */
     points = read_data(filename, &n, &d);
-    
-    // print_matrix(points, n, d);
-    // exit(0);
 
     /* Call appropriate function based on goal */
     // if (strcmp(goal, "sym") == 0) {

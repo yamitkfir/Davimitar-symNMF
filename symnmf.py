@@ -8,6 +8,7 @@ ERROR_MSG = "An Error Has Occurred"
 SEPERATOR = ','
 
 def main():
+    np.random.seed(RANDOM_SEED)
     # Read CMD args
     if len(sys.argv) != 4:
         print(ERROR_MSG)
@@ -49,16 +50,15 @@ def main():
             result = symnmfmodule.norm(data_points.tolist())
         elif goal == "symnmf":
             # For symnmf, first of all get the normalized similarity matrix W
-            W = symnmf.norm(data_points.tolist())
+            W = symnmfmodule.norm(data_points.tolist())
             
             # Initialize H as described in 1.4.1
-            np.random.seed(RANDOM_SEED)
             n = len(data_points)
             m = np.mean(W)
-            H_init = np.random.uniform(0, 2 * np.sqrt(m / k), (n, k))
+            H_init = np.random.uniform(0, 2 * np.sqrt(m/k), size=(len(X), k))
             
             # Call symnmf function with initial H and W
-            result = symnmfmodule.symnmf(W, H_init.tolist(), k)
+            result = symnmfmodule.symnmf(W, H_init.tolist())
     except:
         print(ERROR_MSG)
         sys.exit(1)
