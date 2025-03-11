@@ -35,7 +35,7 @@ void exit_with_error();
 * Uses a 2D array representation (array of arrays).
 */
 double** diagonal_degree_matrix(double** A, int n) {
-    double** D = (double**)calloc(n * sizeof(double*));
+    double** D = (double**)malloc(n * sizeof(double*));
     int i, j; double sum;
     if (D == NULL) {
         exit_with_error();
@@ -44,7 +44,7 @@ double** diagonal_degree_matrix(double** A, int n) {
     for (i = 0; i < n; i++) {
         D[i] = (double*)calloc(n, sizeof(double));
         if (D[i] == NULL) {
-            free_matrix(D, n);
+            free_matrix(D, i);
             exit_with_error();
         }
     }
@@ -62,7 +62,7 @@ double** diagonal_degree_matrix(double** A, int n) {
 
 /* TODO free_matrix(A) once done with it! */
 double** similarity_matrix(double** datapoints, int n, int d) {
-    double** A = (double**)calloc(n * sizeof(double*));
+    double** A = (double**)malloc(n * sizeof(double*));
     int i, j; double dist;
     if (A == NULL) {
         exit_with_error();
@@ -71,7 +71,7 @@ double** similarity_matrix(double** datapoints, int n, int d) {
     for (i = 0; i < n; i++) {
         A[i] = (double*)malloc(n * sizeof(double));
         if (A[i] == NULL) {
-            free_matrix(A, n);
+            free_matrix(A, i);
             exit_with_error();
         }
     }
@@ -165,13 +165,13 @@ If memory allocation error occurs, returns a null pointer.
 double** get_column(double** M, int rows_num, int j)
 {   
     int i;
-    double** ret = (double**)calloc(1 * sizeof(double*));
+    double** ret = (double**)malloc(1 * sizeof(double*));
     if (ret == NULL)
         return NULL;
     ret[0] = (double*)malloc(rows_num * sizeof(double));
     if (ret[0] == NULL)
     {
-        free_matrix(ret, 1);
+        free_matrix(ret, 0);
         return NULL;
     }
     for(i=0; i < rows_num; i++)
@@ -191,15 +191,15 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
     double numerator, denominator, cell_multiplier;
     double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. Will be a 1*n matrix.*/
     int i,j,s;
-    double** HtH_col = (double**)calloc(k*sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
+    double** HtH_col = (double**)malloc(k * sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
     if(HtH_col == NULL)
         return 1;
     for(j=0; j<k; j++)
     {
         HtH_col[j] = (double*)malloc(sizeof(double));
-        if(HtH_col[0][j] == NULL)
+        if(HtH_col[j] == NULL)
         {
-            free_matrix(HtH_col, k);
+            free_matrix(HtH_col, j);
             return 1;
         }
     }
@@ -236,7 +236,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
     int i, j;
     double** tmp;
-    double** new_H = (double**)calloc(rows_num * sizeof(double*));
+    double** new_H = (double**)malloc(rows_num * sizeof(double*));
     if (new_H == NULL)
     {
         free_matrix(H, rows_num);
@@ -248,7 +248,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
         if(new_H[j] == NULL)
         {
             free_matrix(H, rows_num);
-            free_matrix(new_H, rows_num);
+            free_matrix(new_H, j);
             exit_with_error();
         }
     }
@@ -311,7 +311,7 @@ returns the n*n similarity matrix of the points.
 Assumes all points are of dimension d.
 */
 double** similarity_matrix(double** datapoints, int n, int d){
-    double** A = calloc(n, sizeof(double*));
+    double** A = malloc(n * sizeof(double*));
     int i, j;
     if(A == NULL)
         exit_with_error();
@@ -319,7 +319,7 @@ double** similarity_matrix(double** datapoints, int n, int d){
         A[i] = calloc(n, sizeof(double));
         if(A[i] == NULL)
         {
-            free_matrix(A, n);
+            free_matrix(A, i);
             exit_with_error();
         }
     }
@@ -341,7 +341,7 @@ Given an n*n similarity matrix and the value of n, returns the normalized simila
 double** normalized_similarity_matrix(double** sim_matrix, int n){
     int i;
     double** D = diagonal_degree_matrix(sim_matrix, n);
-    double** D_neg_half = calloc(n, sizeof(double*));
+    double** D_neg_half = malloc(n * sizeof(double*));
     if(D_neg_half == NULL)
     {
         free_matrix(D, n);
@@ -351,7 +351,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
         D_neg_half[i] = calloc(n, sizeof(double));
         if(D_neg_half[i] == NULL)
         {
-            free_matrix(D, n); free_matrix(D_neg_half, n);
+            free_matrix(D, n); free_matrix(D_neg_half, i);
             exit_with_error();
         }
     }
