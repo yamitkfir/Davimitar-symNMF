@@ -22,6 +22,11 @@ Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
     PyObject* lst;
+    double** H;
+    double** W;
+    int n, k;
+    double** new_H;
+    PyObject* ret;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
         Py_RETURN_NONE;
@@ -38,19 +43,19 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** H = getDataPoints(PyList_GetItem(lst, 0));
-    double** W = getDataPoints(PyList_GetItem(lst, 1));
+    H = getDataPoints(PyList_GetItem(lst, 0));
+    W = getDataPoints(PyList_GetItem(lst, 1));
     if(H == NULL || W == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    int n = PyList_Size(PyList_GetItem(lst, 0));
-    int k = PyList_Size(PyList_GetItem(PyList_GetItem(lst, 0, 0)));
-    double** new_H = optimizing_H(H, n, k, W); // waiting for Response to determine rows v cols
+    n = PyList_Size(PyList_GetItem(lst, 0));
+    k = PyList_Size(PyList_GetItem(PyList_GetItem(lst, 0), 0));
+    new_H = optimizing_H(H, n, k, W); // waiting for Response to determine rows v cols
     freeDataPoints(H, n);
     freeDataPoints(W, n);
-    PyObject* ret = MatrixToPyList(new_H, n, k);
-    free_matrix(new_H);
+    ret = MatrixToPyList(new_H, n, k);
+    free_matrix(new_H, n);
     return ret;
 }
 
@@ -62,6 +67,9 @@ Stage 1.1 in the instructions.
 */
 static PyObject* sym(PyObject* self, PyObject* args) {
     PyObject* lst;
+    double** A;
+    PyObject* ret;
+    double** dataPoints;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -70,16 +78,16 @@ static PyObject* sym(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** dataPoints = getDataPoints(lst);
+    dataPoints = getDataPoints(lst);
     if(dataPoints == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
+    A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
     freeDataPoints(dataPoints, PyList_Size(lst));
     
-    PyObject* ret = MatrixToPyList(A, PyList_Size(lst), PyList_Size(lst));
-    free_matrix(A);
+    ret = MatrixToPyList(A, PyList_Size(lst), PyList_Size(lst));
+    free_matrix(A, PyList_Size(lst));
     return ret;
 }
 
@@ -91,6 +99,10 @@ Stage 1.2 in the instructions.
 */
 static PyObject* ddg(PyObject* self, PyObject* args) {
     PyObject* lst;
+    double** dataPoints;
+    double** D;
+    double** A;
+    PyObject* ret;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -99,17 +111,17 @@ static PyObject* ddg(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** dataPoints = getDataPoints(lst);
+    dataPoints = getDataPoints(lst);
     if(dataPoints == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
-    double** D = diagonal_degree_matrix(A, PyList_Size(lst));
+    A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
+    D = diagonal_degree_matrix(A, PyList_Size(lst));
     freeDataPoints(dataPoints, PyList_Size(lst));
-    free_matrix(A);
-    PyObject* ret = MatrixToPyList(D, PyList_Size(lst), PyList_Size(lst));
-    free_matrix(D);
+    free_matrix(A, PyList_Size(lst));
+    ret = MatrixToPyList(D, PyList_Size(lst), PyList_Size(lst));
+    free_matrix(D, PyList_Size(lst));
     return ret;
 }
 
@@ -120,8 +132,11 @@ Given a Datapoints matrix, calculate the Normalized Similarity Matrix.
 Stage 1.3 in the instructions.
 */
 static PyObject* norm(PyObject* self, PyObject* args) {
-    printf("WIP\n");
     PyObject* lst;
+    double** dataPoints;
+    double** A;
+    double** normalized;
+    PyObject* ret;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -130,17 +145,17 @@ static PyObject* norm(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** dataPoints = getDataPoints(lst);
+    dataPoints = getDataPoints(lst);
     if(dataPoints == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    double** A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
-    double** normalized = normalized_similarity_matrix(A, PyList_Size(lst));
+    A = similarity_matrix(dataPoints, PyList_Size(lst), PyList_Size(PyList_GetItem(lst, 0)));
+    normalized = normalized_similarity_matrix(A, PyList_Size(lst));
     freeDataPoints(dataPoints, PyList_Size(lst));
-    free_matrix(A);
-    PyObject* ret = MatrixToPyList(normalized, PyList_Size(lst), PyList_Size(lst));
-    free_matrix(normalized);
+    free_matrix(A, PyList_Size(lst));
+    ret = MatrixToPyList(normalized, PyList_Size(lst), PyList_Size(lst));
+    free_matrix(normalized, PyList_Size(lst));
     return ret;
 }
 
