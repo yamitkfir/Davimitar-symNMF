@@ -1,3 +1,5 @@
-make in windoes: mingw32-make
+make in windows: mingw32-make
 gcc symnmf.c -o symnmf.exe
+
 ./symnmf.exe sym Tests/HW1_tests/input_1.txt
+./symnmf.exe sym Tests/Claude/input-test-1.txt

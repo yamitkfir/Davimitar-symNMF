@@ -8,10 +8,6 @@
 #define beta 0.5
 #define ERROR_MSG "An Error Has Occurred\n"
 
-/* 
-TODO init_H()
-*/
-
 /* Function declarations */
 double squared_euclidean_dist(double* point1, double* point2, int dimension);
 double** get_column(double** M, int rows_num, int j);
@@ -280,7 +276,7 @@ double** similarity_matrix(double** datapoints, int n, int d){
     for (i = 0; i < n; i++){
         for (j = 0; j < n; j++){
             if (i != j){
-                A[i][j] = exp(-squared_euclidian_norm(*(datapoints + i), *(datapoints + j), d) / 2);
+                A[i][j] = exp(-squared_euclidean_dist(*(datapoints + i), *(datapoints + j), d) / 2);
             } else {
                 A[i][j] = 0;
             }

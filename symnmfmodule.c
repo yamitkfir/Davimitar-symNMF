@@ -1,13 +1,16 @@
-/* Python C API Wrapper
+/*
+Python C API Wrapper
 In this file you will define your C extension which will serve the functions:
-symnmf,sym,ddg,norm for Python */
+symnmf,sym,ddg,norm for Python
+*/
+
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
-#include "symnmfalgo.h"
+#include "symnmf.h"
 
 #define ERR_LIST_FORMAT "Expected a list of lists of floats"
 #define ERR_LIST_ITEM_FORMAT "List items must be floats"
-#define ERR_SYMNF_FORMAT "Input must be two matrixes"
+#define ERR_SYMNMF_FORMAT "Input must be two matrixes"
 
 /* Function declarations - for module use only */
 double** getDataPoints(PyObject* lst);
@@ -21,22 +24,19 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
-    PyObject* lst;
-    double** H;
-    double** W;
+    PyObject* lst, ret;
+    double** H, W, new_H;
     int n, k;
-    double** new_H;
-    PyObject* ret;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
-        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
     }
     if (!PyList_Check(lst)) {
-        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
     }
     if(PyList_Size(lst) != 2) {
-        PyErr_SetString(PyExc_TypeError, ERR_SYMNF_FORMAT);
+        PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
     }
     if(!PyList_Check(PyList_GetItem(lst, 0)) || !PyList_Check(PyList_GetItem(lst, 1))) {
@@ -66,10 +66,8 @@ Given a matrix of datapoints, calculate the similarity matrix.
 Stage 1.1 in the instructions.
 */
 static PyObject* sym(PyObject* self, PyObject* args) {
-    PyObject* lst;
-    double** A;
-    PyObject* ret;
-    double** dataPoints;
+    PyObject* lst, ret;
+    double** A, dataPoints;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -98,11 +96,8 @@ Given a Datapoints matrix, calculate the Diagonal Degree Matrix.
 Stage 1.2 in the instructions.
 */
 static PyObject* ddg(PyObject* self, PyObject* args) {
-    PyObject* lst;
-    double** dataPoints;
-    double** D;
-    double** A;
-    PyObject* ret;
+    PyObject* lst, ret;
+    double** dataPoints, D, A;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -132,11 +127,8 @@ Given a Datapoints matrix, calculate the Normalized Similarity Matrix.
 Stage 1.3 in the instructions.
 */
 static PyObject* norm(PyObject* self, PyObject* args) {
-    PyObject* lst;
-    double** dataPoints;
-    double** A;
-    double** normalized;
-    PyObject* ret;
+    PyObject* lst, ret;
+    double** dataPoints, A, normalized;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -184,7 +176,8 @@ PyMODINIT_FUNC PyInit_symnmfmodule(void) {
 }
 
 void freeDataPoints(double** dataPoints, int n) {
-    for (int i = 0; i < n; i++) {
+    int i;
+    for (i = 0; i < n; i++) {
         free(dataPoints[i]);
     }
     free(dataPoints);
@@ -193,8 +186,8 @@ void freeDataPoints(double** dataPoints, int n) {
 double** getDataPoints(PyObject* lst) {
     Py_ssize_t len = PyList_Size(lst);
     double** dataPoints = calloc(len, sizeof(double*));
-
-    for (Py_ssize_t i = 0; i < len; i++) {
+    Py_ssize_t i, j;
+    for (i = 0; i < len; i++) {
         PyObject* subList = PyList_GetItem(lst, i);
         if (!PyList_Check(subList)) {
             PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
@@ -202,7 +195,7 @@ double** getDataPoints(PyObject* lst) {
         }
         Py_ssize_t subListLen = PyList_Size(subList);
         dataPoints[i] = calloc(subListLen, sizeof(double));
-        for(Py_ssize_t j = 0; j < subListLen; j++) {
+        for(j = 0; j < subListLen; j++) {
             PyObject* cord = PyList_GetItem(subList, j);
             if (!PyFloat_Check(cord) && !PyLong_Check(cord)) {
                 PyErr_SetString(PyExc_TypeError, ERR_LIST_ITEM_FORMAT);
@@ -216,9 +209,10 @@ double** getDataPoints(PyObject* lst) {
 
 PyObject* MatrixToPyList(double** matrix, int n, int m) {
     PyObject* lst = PyList_New(n);
-    for (int i = 0; i < n; i++) {
+    int i, j;
+    for (i = 0; i < n; i++) {
         PyObject* subList = PyList_New(m);
-        for (int j = 0; j < m; j++) {
+        for (j = 0; j < m; j++) {
             PyList_SetItem(subList, j, PyFloat_FromDouble(matrix[i][j]));
         }
         PyList_SetItem(lst, i, subList);
