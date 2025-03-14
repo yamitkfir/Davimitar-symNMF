@@ -112,7 +112,7 @@ def update_cluster(clusters, dimension, K):
     return next_centroids
 
 
-def check_convergence(current_centroids, next_centroids, epsilon)
+def check_convergence(current_centroids, next_centroids, epsilon):
     """Checks if the algorithm has converged on the given centroids, given a value of epsilon."""
     max_delta = 0.0 # Check convergence
     curr_centroid = current_centroids.head
@@ -146,7 +146,7 @@ def kmeans_general(K, max_iter, input_filename, epsilon = EPSILON):
         clusters = assign_cluster(original_points, current_centroids, K) # Assign points to clusters
         dimension = len(original_points.head.vector) 
         next_centroids = update_cluster(clusters, dimension, K) # Update centroids
-        if check_convergence:
+        if check_convergence(current_centroids, next_centroids, epsilon):
             break
         current_centroids = next_centroids # Update centroids for next iteration
         iteration += 1   
