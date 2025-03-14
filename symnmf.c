@@ -29,10 +29,12 @@ double **read_data(const char *filename, int *n, int *d);
 void print_matrix(double **matrix, int rows, int cols);
 
 /* Helper functions */
+double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
 double frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
 double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
+void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j);
 void exit_with_error();
 
 
@@ -43,67 +45,30 @@ void exit_with_error()
     exit(1);
 }
 
-/* 
-read_data - Reads data points from a file
-Parameters:
-    filename - Path to the input file
-    n - Pointer in which to store the number of data points
-    d - Pointer in which to store the dimension of each data point
-Returns: Double pointer to the data points matrix (n x d)
+/*
+Given an opened file fp, an array big enough to hold every line from fp and the dimensions of the points represented in fp, returns a n*d point matrix of the points in the file.
 */
-double **read_data(const char *filename, int *n, int *d) {
-    FILE *fp;
-    double **points;
-    char line[MAX_LINE_LENGTH];
-    char *token;
+double **create_points_matrix(FILE *fp, char line[], int *n, int *d)
+{
     int i, j;
-    
-    /* Open file */
-    fp = fopen(filename, "r");
-    if (fp == NULL) {
-        exit_with_error();
-    }
-    *n = 0; *d = 0; /* Count num of points and dimensions */
-
-    /* Read first line to count dimensions (=d) */
-    if (fgets(line, sizeof(line), fp) != NULL) {
-        token = strtok(line, SEPARATOR); /* Like "split" in py */
-        while (token != NULL) {
-            (*d)++;
-            token = strtok(NULL, SEPARATOR);
-        }
-        (*n)++;
-    }
-    /* Then count remaining lines (=points=n) */
-    while (fgets(line, sizeof(line), fp) != NULL) {
-        (*n)++;
-    }
-    /* Reset file pointer to beginning of file */
-    rewind(fp);
-    /* Allocate memory for data points matrix */
-    points = (double **)malloc(*n * sizeof(double *));
+    char *token;
+    double **points = (double **)malloc(*n * sizeof(double *)); /* Allocate memory for data points matrix */
     if (points == NULL) {
         fclose(fp);
         exit_with_error();
     }
-    /* Allocate memory for each row */
-    for (i = 0; i < *n; i++) {
+    for (i = 0; i < *n; i++) { /* Allocate memory for each row */
         points[i] = (double *)malloc(*d * sizeof(double));
-        if (points[i] == NULL) {
-            /* If theres a problem in allocation, 
-            free previously allocated memory and exit */
-            for (j = 0; j < i; j++) {
+        if (points[i] == NULL) { /* If theres a problem in allocation, free previously allocated memory and exit */
+            for (j = 0; j < i; j++) 
                 free(points[j]);
-            }
             free(points);
             fclose(fp);
             exit_with_error();
         }
     }
-    
-    /* Read data points from file */
     i = 0;
-    while (fgets(line, sizeof(line), fp) != NULL && i < *n) {
+    while (fgets(line, sizeof(line), fp) != NULL && i < *n) { /* Read data points from file */
         token = strtok(line, SEPARATOR); /* Like "split" in py */
         j = 0;
         while (token != NULL && j < *d) {
@@ -113,6 +78,37 @@ double **read_data(const char *filename, int *n, int *d) {
         }
         i++;
     }
+    return points;
+}
+
+/* 
+Reads data points from a file.
+Parameters: filename - Path to the input file, n - Pointer in which to store the number of data points, d - Pointer in which to store the dimension of each data point
+Returns: Double pointer to the data points matrix (n x d)
+*/
+double **read_data(const char *filename, int *n, int *d) {
+    FILE *fp;
+    double **points;
+    char line[MAX_LINE_LENGTH];
+    char *token;
+    int i, j;
+    fp = fopen(filename, "r"); /* Open file */
+    if (fp == NULL) {
+        exit_with_error();
+    }
+    *n = 0; *d = 0; /* Count num of points and dimensions */
+    if (fgets(line, sizeof(line), fp) != NULL) { /* Read first line to count dimensions (=d) */
+        token = strtok(line, SEPARATOR); /* Like "split" in py */
+        while (token != NULL) {
+            (*d)++;
+            token = strtok(NULL, SEPARATOR);
+        }
+        (*n)++;
+    }
+    while (fgets(line, sizeof(line), fp) != NULL) /* Then count remaining lines (=points=n) */
+        (*n)++;
+    rewind(fp); /* Reset file pointer to beginning of file */
+    points = create_points_matrix(fp, line, n, d);
     fclose(fp);
     return points;
 }
@@ -245,6 +241,19 @@ double** get_column(double** M, int rows_num, int j)
 }
 
 /*
+Given the current iteration's H matrix, a pointer to the new H matrix and all needed values (including a cell coordinate (i,j) in H), updates the new H's cell in place (i,j).
+*/
+void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j)
+{
+    int numerator, denominator, cell_multiplier;
+    numerator = matrix_mult_cell(W, n, H, i, j);
+    denominator = matrix_mult_cell(H, k, HtH_col, i, 0);
+    cell_multiplier = numerator / denominator;
+    cell_multiplier += (1 - beta);
+    new_H[i][j] = H[i][j]*cell_multiplier;
+}
+
+/*
 Given a n*n graph laplacian W, a current n*k iteration matrix H and a pointer to an ALREADY EXISTING n*k matrix new_H,
 changes the values in the new_H matrix IN PLACE to be the new values, as per the instructions (See 1.4.2).
 If memory allocation error occurs, returns 1. if finished successfully, returns 0.
@@ -280,13 +289,7 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
             free_matrix(Ht_row, 1);
         }
         for(i=0; i<n; i++)
-        {
-            numerator = matrix_mult_cell(W, n, H, i, j);
-            denominator = matrix_mult_cell(H, k, HtH_col, i, 0);
-            cell_multiplier = numerator / denominator;
-            cell_multiplier += (1 - beta);
-            new_H[i][j] = H[i][j]*cell_multiplier;
-        }
+            update_H_cell(W, H, new_H, HtH_col, n, k, i, j);
     }
     return 0;
 }
@@ -298,8 +301,7 @@ Returns an optimized H.
 double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
     int i, j;
-    double** tmp;
-    double** new_H = (double**)malloc(rows_num * sizeof(double*));
+    double **tmp, **new_H = (double**)malloc(rows_num * sizeof(double*));
     if (new_H == NULL)
     {
         free_matrix(H, rows_num);
@@ -315,8 +317,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
             exit_with_error();
         }
     }
-    /* Does the actual work */
-    for (i=1; i<=max_iter; i++)
+    for (i=1; i<=max_iter; i++) /* Does the actual work */
     {
         if(update_H(W, H, new_H, rows_num, cols_num) == 1) /* Updates H and puts the updated version into new_H. 1 will be returned iff an error occurs during the update. */
         {
@@ -343,7 +344,6 @@ double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k
     for(i = 0; i < m; i++){
         product[i] = calloc(k, sizeof(double));
     }
-
     for (i = 0; i < m; i++){
         for (j = 0; j < k; j++){
             for (l = 0; l < n; l++){
@@ -351,7 +351,6 @@ double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k
             }
         }
     }
-
     return product;
 }
 
@@ -419,33 +418,21 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
 
 
 /*
-CMD args:
-argv[1] - goal (sym, ddg, or norm)
-argv[2] - file path
+CMD args: argv[1] - goal (sym, ddg, or norm), argv[2] - file path
 */
 int main(int argc, char *argv[]) {
     double **points, **A, **result = NULL;
     int n, d;
-    char *goal = argv[1];
-    char *filename = argv[2];
-    
-    /* Check for correct num of CMD args */
-    if (argc != 3) { exit_with_error(); }
-    
-    /* Read data points from input file */
-    points = read_data(filename, &n, &d);
-
-    /* Call appropriate function based on goal */
-    if (strcmp(goal, "sym") == 0) {
-        /* Calculate similarity matrix */
-        result = similarity_matrix(points, n, d);
+    char *goal = argv[1], *filename = argv[2];
+    if (argc != 3) { exit_with_error(); } /* Check for correct num of CMD args */
+    points = read_data(filename, &n, &d); /* Read data points from input file */
+    if (strcmp(goal, "sym") == 0) { /* Goal: calculate similarity matrix */
+        result = similarity_matrix(points, n, d); 
         if (result == NULL) {
             free_matrix(points, n);
             exit_with_error();
         }
-        print_matrix(result, n, n);
-    } else if (strcmp(goal, "ddg") == 0) {
-        /* Calculate diagonal degree matrix */
+    } else if (strcmp(goal, "ddg") == 0) { /* Goal: calculate diagonal degree matrix */
         A = similarity_matrix(points, n, d);
         if (A == NULL) { /* Couldn't allocate space for A */
             free_matrix(points, n);
@@ -457,9 +444,7 @@ int main(int argc, char *argv[]) {
             free_matrix(A, n);
             exit_with_error();
         }
-        print_matrix(result, n, n);
-    } else if (strcmp(goal, "norm") == 0) {
-        /* Calculate normalized similarity matrix */
+    } else if (strcmp(goal, "norm") == 0) { /* Goal: calculate normalized similarity matrix */
         A = similarity_matrix(points, n, d);
         if (A == NULL) { /* Couldn't allocate space for A */
             free_matrix(points, n);
@@ -470,14 +455,12 @@ int main(int argc, char *argv[]) {
             free_matrix(points, n);
             free_matrix(A, n);
             exit_with_error();
-        }
-        print_matrix(result, n, n);
+        }  
     } else { /* Invalid goal */
         free_matrix(points, n);
         exit_with_error();
     }
-    
-    /* free allocated memory */
+    print_matrix(result, n, n);
     free_matrix(points, n);
     free_matrix(result, n);
     if (strcmp(goal, "sym") != 0) { /* Only free A if it was actually allocated */

@@ -112,53 +112,44 @@ def update_cluster(clusters, dimension, K):
     return next_centroids
 
 
+def check_convergence(current_centroids, next_centroids, epsilon):
+    """Checks if the algorithm has converged on the given centroids, given a value of epsilon."""
+    max_delta = 0.0 # Check convergence
+    curr_centroid = current_centroids.head
+    next_centroid = next_centroids.head
+    while curr_centroid and next_centroid:
+        delta = dist_mju(curr_centroid.vector, next_centroid.vector)
+        max_delta = max(max_delta, delta)
+        curr_centroid = curr_centroid.next
+        next_centroid = next_centroid.next
+    if max_delta < epsilon:
+        return True
+    else:
+        return False
+
+
 def kmeans_general(K, max_iter, input_filename, epsilon = EPSILON):
-    # Read data
-    original_points = read_file(input_filename)
+    original_points = read_file(input_filename) # Read data
     if original_points.size == 0:
         print(ERROR_MSG)
         sys.exit(1)
-    
-    # Validate K
-    if K <= 1 or K >= original_points.size:
+    if K <= 1 or K >= original_points.size: # Validate K
         print(CLUSTER_MSG)
         sys.exit(1)
-    
-    # Initialize centroids with first K points
-    current_centroids = LinkedList()
+    current_centroids = LinkedList() # Initialize centroids with first K points
     for i in range(K):
         vector = original_points.get_at_index(i)
         if vector:
             current_centroids.append(vector.copy())
-    
-    # Main iteration loop
     iteration = 0
-    while iteration < max_iter:
-        # Assign points to clusters
-        clusters = assign_cluster(original_points, current_centroids, K)
-        
-        # Update centroids
-        dimension = len(original_points.head.vector)
-        next_centroids = update_cluster(clusters, dimension, K)
-        
-        # Check convergence
-        max_delta = 0.0
-        curr_centroid = current_centroids.head
-        next_centroid = next_centroids.head
-        
-        while curr_centroid and next_centroid:
-            delta = dist_mju(curr_centroid.vector, next_centroid.vector)
-            max_delta = max(max_delta, delta)
-            curr_centroid = curr_centroid.next
-            next_centroid = next_centroid.next
-        
-        if max_delta < epsilon:
+    while iteration < max_iter: # Main iteration loop
+        clusters = assign_cluster(original_points, current_centroids, K) # Assign points to clusters
+        dimension = len(original_points.head.vector) 
+        next_centroids = update_cluster(clusters, dimension, K) # Update centroids
+        if check_convergence(current_centroids, next_centroids, epsilon):
             break
-        
-        # Update centroids for next iteration
-        current_centroids = next_centroids
-        iteration += 1
-    
+        current_centroids = next_centroids # Update centroids for next iteration
+        iteration += 1   
     return current_centroids
 
 
@@ -175,7 +166,6 @@ def main():
     if len(sys.argv) not in [3, 4]:
         print(ERROR_MSG)
         sys.exit(1)
-        
     try:
         K = int(sys.argv[1])
     except ValueError:
@@ -187,21 +177,16 @@ def main():
     except ValueError:
         print(ITER_MSG)
         sys.exit(1)
-        
     try:
-        filename = sys.argv[-1]
-        
+        filename = sys.argv[-1]  
         # Validate iter
         if iter <= 1 or iter >= MAX_ITER:
             print(ITER_MSG)
-            sys.exit(1)
-            
+            sys.exit(1)     
         # Run algorithm
         final_centroids = kmeans_general(K, iter, filename)
-        
         # Print results
-        print_results(final_centroids)
-        
+        print_results(final_centroids)   
     except ValueError:
         print(ERROR_MSG)
         sys.exit(1)
