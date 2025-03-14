@@ -364,13 +364,13 @@ double** similarity_matrix(double** datapoints, int n, int d){
     double** A = malloc(n * sizeof(double*));
     int i, j;
     if(A == NULL)
-        exit_with_error();
+        return NULL;
     for (i = 0; i < n; i++){
         A[i] = calloc(n, sizeof(double));
         if(A[i] == NULL)
         {
             free_matrix(A, i);
-            exit_with_error();
+            return NULL;
         }
     }
     for (i = 0; i < n; i++){
@@ -390,6 +390,7 @@ Given an n*n similarity matrix and the value of n, returns the normalized simila
 */
 double** normalized_similarity_matrix(double** sim_matrix, int n){
     int i;
+    double** temp, **normalized, **D, **D_neg_half;
     double** D = diagonal_degree_matrix(sim_matrix, n);
     double** D_neg_half = malloc(n * sizeof(double*));
     if(D_neg_half == NULL)
@@ -408,8 +409,8 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     for (i = 0; i < n; i++){
         D_neg_half[i][i] = 1 / sqrt(D[i][i]);
     }
-    double** temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
-    double** normalized = multiply_matrix(temp, D_neg_half, n, n, n);
+    temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
+    normalized = multiply_matrix(temp, D_neg_half, n, n, n);
     free_matrix(D, n);
     free_matrix(D_neg_half, n);
     free_matrix(temp, n);
@@ -446,18 +447,28 @@ int main(int argc, char *argv[]) {
     } else if (strcmp(goal, "ddg") == 0) {
         /* Calculate diagonal degree matrix */
         A = similarity_matrix(points, n, d);
+        if (A == NULL) { /* Couldn't allocate space for A */
+            free_matrix(points, n);
+            exit_with_error();
+        }
         result = diagonal_degree_matrix(A, n);
         if (result == NULL) {
             free_matrix(points, n);
+            free_matrix(A, n);
             exit_with_error();
         }
         print_matrix(result, n, n);
     } else if (strcmp(goal, "norm") == 0) {
         /* Calculate normalized similarity matrix */
         A = similarity_matrix(points, n, d);
+        if (A == NULL) { /* Couldn't allocate space for A */
+            free_matrix(points, n);
+            exit_with_error();
+        }
         result = normalized_similarity_matrix(A, n);
         if (result == NULL) {
             free_matrix(points, n);
+            free_matrix(A, n);
             exit_with_error();
         }
         print_matrix(result, n, n);
@@ -469,6 +480,8 @@ int main(int argc, char *argv[]) {
     /* free allocated memory */
     free_matrix(points, n);
     free_matrix(result, n);
-    free_matrix(A, n);
+    if (strcmp(goal, "sym") != 0) { /* Only free A if it was actually allocated */
+        free_matrix(A, n);
+    }
     return 0;
 }

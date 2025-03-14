@@ -3,3 +3,9 @@ gcc symnmf.c -o symnmf.exe
 
 ./symnmf.exe sym Tests/HW1_tests/input_1.txt
 ./symnmf.exe sym Tests/Claude/input-test-1.txt
+
+FORUM shenanigans:
+the C code should be able to be compiled on its own by the makefile
+Is it acceptable to have inaccuracy when calculating normalized matrix? -> up to 0.0001.
+How can we run valgrind on symnmfmodule? because of the python.h include it doesn't run 
+-> You need to run it on the C main itself

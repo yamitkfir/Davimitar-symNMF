@@ -4,7 +4,8 @@
         "frobenius",
         "symnmf",
         "symnmfmethods",
-        "symnmfmodule"
+        "symnmfmodule",
+        "valgrind"
     ],
     "files.associations": {
         "symnmf.h": "c",
