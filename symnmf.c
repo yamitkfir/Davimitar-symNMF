@@ -248,7 +248,7 @@ void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int
 {
     int numerator, denominator, cell_multiplier;
     numerator = matrix_mult_cell(W, n, H, i, j);
-    denominator = matrix_mult_cell(H, k, HtH_col, i, 0) + denominator_eps;
+    denominator = matrix_mult_cell(H, k, HtH_col, i, 0) + denominator_eps; /* This epsilon is added to avoid division by zero. */
     cell_multiplier = numerator / denominator;
     cell_multiplier += (1 - beta);
     new_H[i][j] = H[i][j]*cell_multiplier;
