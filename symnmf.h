@@ -1,5 +1,5 @@
-#ifndef SYM_NMF_H
-#define SYM_NMF_H
+#ifndef SYMNMF_H
+#define SYMNMF_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,9 +23,9 @@ void print_matrix(double **matrix, int rows, int cols);
 double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
 double frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
-double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
+double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k);
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
 void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j);
 void exit_with_error();
 
-#endif // SYM_NMF_H
+#endif

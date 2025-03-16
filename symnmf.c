@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "symnmf.h"
+/* #include "symnmf.h" */
 
 #define max_iter 300
 #define eps 1e-4
@@ -69,8 +69,8 @@ double **create_points_matrix(FILE *fp, char line[], int *n, int *d)
         }
     }
     i = 0;
-    while (fgets(line, sizeof(line), fp) != NULL && i < *n) { /* Read data points from file */
-        token = strtok(line, SEPARATOR); /* Like "split" in py */
+    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL && i < *n) { /* Read data points from file */
+        token = strtok(line, SEPARATOR); /* Like "split" in Python */
         j = 0;
         while (token != NULL && j < *d) {
             points[i][j] = atof(token);
@@ -92,13 +92,12 @@ double **read_data(const char *filename, int *n, int *d) {
     double **points;
     char line[MAX_LINE_LENGTH];
     char *token;
-    int i, j;
     fp = fopen(filename, "r"); /* Open file */
     if (fp == NULL) {
         exit_with_error();
     }
     *n = 0; *d = 0; /* Count num of points and dimensions */
-    if (fgets(line, sizeof(line), fp) != NULL) { /* Read first line to count dimensions (=d) */
+    if (fgets(line, MAX_LINE_LENGTH, fp) != NULL) { /* Read first line to count dimensions (=d) */
         token = strtok(line, SEPARATOR); /* Like "split" in py */
         while (token != NULL) {
             (*d)++;
@@ -106,7 +105,7 @@ double **read_data(const char *filename, int *n, int *d) {
         }
         (*n)++;
     }
-    while (fgets(line, sizeof(line), fp) != NULL) /* Then count remaining lines (=points=n) */
+    while (fgets(line, MAX_LINE_LENGTH, fp) != NULL) /* Then count remaining lines (=points=n) */
         (*n)++;
     rewind(fp); /* Reset file pointer to beginning of file */
     points = create_points_matrix(fp, line, n, d);
@@ -261,7 +260,6 @@ If memory allocation error occurs, returns 1. if finished successfully, returns 
 */
 int update_H(double** W, double** H, double** new_H, int n, int k)
 {
-    double numerator, denominator, cell_multiplier;
     double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. Will be a 1*n matrix.*/
     int i,j,s;
     double** HtH_col = (double**)malloc(k * sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
@@ -390,7 +388,7 @@ Given an n*n similarity matrix and the value of n, returns the normalized simila
 */
 double** normalized_similarity_matrix(double** sim_matrix, int n){
     int i;
-    double** temp, **normalized, **D, **D_neg_half;
+    double** temp, **normalized;
     double** D = diagonal_degree_matrix(sim_matrix, n);
     double** D_neg_half = malloc(n * sizeof(double*));
     if(D_neg_half == NULL)
@@ -422,7 +420,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
 CMD args: argv[1] - goal (sym, ddg, or norm), argv[2] - file path
 */
 int main(int argc, char *argv[]) {
-    double **points, **A, **result = NULL;
+    double **points, **A = NULL , **result = NULL;
     int n, d;
     char *goal = argv[1], *filename = argv[2];
     if (argc != 3) { exit_with_error(); } /* Check for correct num of CMD args */

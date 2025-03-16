@@ -24,8 +24,8 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
-    PyObject* lst, ret;
-    double** H, W, new_H;
+    PyObject* lst, *ret;
+    double** H, **W, **new_H;
     int n, k;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
@@ -66,8 +66,8 @@ Given a matrix of datapoints, calculate the similarity matrix.
 Stage 1.1 in the instructions.
 */
 static PyObject* sym(PyObject* self, PyObject* args) {
-    PyObject* lst, ret;
-    double** A, dataPoints;
+    PyObject* lst, *ret;
+    double** A, **dataPoints;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -96,8 +96,8 @@ Given a Datapoints matrix, calculate the Diagonal Degree Matrix.
 Stage 1.2 in the instructions.
 */
 static PyObject* ddg(PyObject* self, PyObject* args) {
-    PyObject* lst, ret;
-    double** dataPoints, D, A;
+    PyObject* lst, *ret;
+    double** dataPoints, **D, **A;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
@@ -127,8 +127,8 @@ Given a Datapoints matrix, calculate the Normalized Similarity Matrix.
 Stage 1.3 in the instructions.
 */
 static PyObject* norm(PyObject* self, PyObject* args) {
-    PyObject* lst, ret;
-    double** dataPoints, A, normalized;
+    PyObject* lst, *ret;
+    double** dataPoints, **A, **normalized;
     if(!PyArg_ParseTuple(args, "O", &lst)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
