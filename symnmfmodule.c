@@ -24,27 +24,19 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
-    PyObject* lst, *ret;
+    PyObject *lstH, *lstW, *ret;
     double** H, **W, **new_H;
     int n, k;
-    if(!PyArg_ParseTuple(args, "O", &lst)) {
+    if(!PyArg_ParseTuple(args, "OO", &lstW, &lstH)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
     }
-    if (!PyList_Check(lst)) {
-        PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
-        Py_RETURN_NONE;
-    }
-    if(PyList_Size(lst) != 2) {
-        PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
-        Py_RETURN_NONE;
-    }
-    if(!PyList_Check(PyList_GetItem(lst, 0)) || !PyList_Check(PyList_GetItem(lst, 1))) {
+    if (!PyList_Check(lstH) || !PyList_Check(lstW)) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    H = getDataPoints(PyList_GetItem(lst, 0));
-    W = getDataPoints(PyList_GetItem(lst, 1));
+    H = getDataPoints(lstH);
+    W = getDataPoints(lstW);
     if(H == NULL || W == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
