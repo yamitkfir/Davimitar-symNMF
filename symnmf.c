@@ -157,7 +157,7 @@ double** diagonal_degree_matrix(double** A, int n) {
     }
     /* Allocate memory for each row and init to 0 */
     for (i = 0; i < n; i++) {
-        D[i] = (double*)calloc(n, sizeof(double));
+        D[i] = (double*)malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
         if (D[i] == NULL) {
             free_matrix(D, i);
             exit_with_error();
@@ -337,16 +337,31 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 /*
 Receives a m*n matrix A and a n*k matrix B alongside their dimensions, and returns the product matrix AB.
 */
-double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k){
-    double** product = calloc(m, sizeof(double*));
+double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k) {
+    double** product = malloc(m * sizeof(double*));
+    if (product == NULL) return NULL;
     int i, j, l;
-    for(i = 0; i < m; i++){
-        product[i] = calloc(k, sizeof(double));
+    for (i = 0; i < m; i++) {
+        product[i] = malloc(k * sizeof(double));
+        if (product[i] == NULL) {
+            // Clean up previously allocated memory
+            for (int p = 0; p < i; p++) {
+                free(product[p]);
+            }
+            free(product);
+            return NULL;
+        }
+        /* Initialize to zero (still more efficient than calloc) */
+        for (j = 0; j < k; j++) {
+            product[i][j] = 0.0;
+        }
     }
-    for (i = 0; i < m; i++){
-        for (j = 0; j < k; j++){
-            for (l = 0; l < n; l++){
-                product[i][j] += matrixA[i][l] * matrixB[l][j];
+    /* Optimized loop order for better cache locality */
+    for (i = 0; i < m; i++) {
+        for (l = 0; l < n; l++) {
+            const double a_il = matrixA[i][l]; /* Hear me out: Cache this value */
+            for (j = 0; j < k; j++) {
+                product[i][j] += a_il * matrixB[l][j];
             }
         }
     }
@@ -364,7 +379,7 @@ double** similarity_matrix(double** datapoints, int n, int d){
     if(A == NULL)
         return NULL;
     for (i = 0; i < n; i++){
-        A[i] = calloc(n, sizeof(double));
+        A[i] = malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
         if(A[i] == NULL)
         {
             free_matrix(A, i);
@@ -397,7 +412,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
         exit_with_error();
     }
     for (i = 0; i < n; i++){
-        D_neg_half[i] = calloc(n, sizeof(double));
+        D_neg_half[i] = malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
         if(D_neg_half[i] == NULL)
         {
             free_matrix(D, n); free_matrix(D_neg_half, i);
@@ -407,8 +422,11 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     for (i = 0; i < n; i++){
         D_neg_half[i][i] = 1 / sqrt(D[i][i]);
     }
+    printf("425\n"); /* TEMP */
     temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
+    printf("427\n"); /* TEMP */
     normalized = multiply_matrix(temp, D_neg_half, n, n, n);
+    printf("429\n"); /* TEMP */
     free_matrix(D, n);
     free_matrix(D_neg_half, n);
     free_matrix(temp, n);

@@ -1,10 +1,12 @@
 make in windows: mingw32-make
-gcc symnmf.c -o symnmf.exe
+gcc symnmf.c -o symnmf.exe -lm
 
 ./symnmf.exe sym Tests/HW1_tests/input_1.txt
 ./symnmf.exe sym Tests/Claude/input-test-1.txt
 
 make -f /home/developer/sp/Davimitar-symNMF/MakeFile
+python3 symnmf.py 2 symnmf Tests/Claude/input_1.txt
+python3 symnmf.py 1 norm Tests/HW1_tests/input_3.txt
 
 FORUM shenanigans:
 the C code should be able to be compiled on its own by the makefile

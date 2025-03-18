@@ -10,5 +10,7 @@
     "files.associations": {
         "symnmf.h": "c",
         "string.h": "c"
-    }
+    },
+    "accessibility.accessibleView": false,
+    "accessibility.hideAccessibleView": true
 }

@@ -41,8 +41,8 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    n = PyList_Size(PyList_GetItem(lst, 0));
-    k = PyList_Size(PyList_GetItem(PyList_GetItem(lst, 0), 0));
+    n = PyList_Size(PyList_GetItem(lstH, 0));
+    k = PyList_Size(PyList_GetItem(lstW, 0));
     new_H = optimizing_H(H, n, k, W); // waiting for Response to determine rows v cols
     freeDataPoints(H, n);
     freeDataPoints(W, n);
@@ -177,7 +177,7 @@ void freeDataPoints(double** dataPoints, int n) {
 
 double** getDataPoints(PyObject* lst) {
     Py_ssize_t len = PyList_Size(lst);
-    double** dataPoints = calloc(len, sizeof(double*));
+    double** dataPoints = malloc(len * sizeof(double*)); /* TODO david replaced calloc with malloc, ok? */
     Py_ssize_t i, j;
     for (i = 0; i < len; i++) {
         PyObject* subList = PyList_GetItem(lst, i);
@@ -186,7 +186,7 @@ double** getDataPoints(PyObject* lst) {
             return NULL;
         }
         Py_ssize_t subListLen = PyList_Size(subList);
-        dataPoints[i] = calloc(subListLen, sizeof(double));
+        dataPoints[i] = malloc(subListLen * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
         for(j = 0; j < subListLen; j++) {
             PyObject* cord = PyList_GetItem(subList, j);
             if (!PyFloat_Check(cord) && !PyLong_Check(cord)) {
