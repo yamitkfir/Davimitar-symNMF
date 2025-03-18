@@ -56,9 +56,17 @@ def main():
             # Initialize H as described in 1.4.1
             n = len(data_points)
             m = np.mean(W)
-            H_init = np.random.uniform(0, 2 * np.sqrt(m / k), size=(n, k))
+            H_init = np.random.rand(n,k)
+            for row in H_init:
+                die = (SEPERATOR.join(["%.4f" % val for val in row])) 
+                # TEMP TODO for some reason only works with this, as if to take a timeout or smth...
+            H_init *= 2 * np.sqrt(m / k)
             
-            # Call symnmf function with initial H and W
+            # TEMP Print initial H
+            print("Initial H2 matrix:")
+            for row in H_init:
+                print(SEPERATOR.join(["%.4f" % val for val in row]))
+
             result = symnmfmodule.symnmf(W, H_init.tolist())
     except Exception as e:
         print(f"{ERROR_MSG}: {e}")
