@@ -41,9 +41,9 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    n = PyList_Size(PyList_GetItem(lstH, 0));
-    k = PyList_Size(PyList_GetItem(lstW, 0));
-    new_H = optimizing_H(H, n, k, W); // waiting for Response to determine rows v cols
+    n = PyList_Size(lstH);
+    k = PyList_Size(PyList_GetItem(lstH, 0));
+    new_H = optimizing_H(H, n, k, W); 
     freeDataPoints(H, n);
     freeDataPoints(W, n);
     ret = MatrixToPyList(new_H, n, k);
