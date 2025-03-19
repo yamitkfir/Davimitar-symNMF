@@ -10,7 +10,7 @@
 /* Function declarations */
 double squared_euclidean_dist(double* point1, double* point2, int dimension);
 double** get_column(double** M, int rows_num, int j);
-double** optimizing_H(double** H, int rows_num, int cols_num, double** W);
+void optimizing_H(double** H, int rows_num, int cols_num, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);

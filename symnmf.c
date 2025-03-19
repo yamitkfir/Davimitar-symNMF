@@ -20,7 +20,7 @@
 /* Function declarations */
 double squared_euclidean_dist(double* point1, double* point2, int dimension);
 double** get_column(double** M, int rows_num, int j);
-double** optimizing_H(double** H, int rows_num, int cols_num, double** W);
+void optimizing_H(double** H, int rows_num, int cols_num, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
@@ -245,7 +245,7 @@ Given the current iteration's H matrix, a pointer to the new H matrix and all ne
 */
 void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j)
 {
-    int numerator, denominator, cell_multiplier;
+    float numerator, denominator, cell_multiplier;
     numerator = matrix_mult_cell(W, n, H, i, j);
     denominator = matrix_mult_cell(H, k, HtH_col, i, 0) + denominator_eps; /* This epsilon is added to avoid division by zero. */
     cell_multiplier = numerator / denominator;
@@ -294,10 +294,10 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
 }
 
 /*
-Given a starting matrix H, its dimensions and a graph laplacian W, perform the optimization algorithm in the instructions.
+Given a starting matrix H, its dimensions and a graph laplacian W, perform the optimization algorithm INPLACE in the instructions.
 Returns an optimized H.
 */
-double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
+void optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
     int i, j;
     double **tmp, **new_H = (double**)malloc(rows_num * sizeof(double*));
@@ -331,7 +331,6 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
         new_H = tmp;
     }
     free_matrix(new_H, rows_num);
-    return H;
 }
 
 /*
@@ -472,7 +471,9 @@ int main(int argc, char *argv[]) {
             free_matrix(points, n);
             free_matrix(A, n);
             exit_with_error();
-        }  
+        } 
+    } else if (strcmp(goal, "symnmf") == 0) {
+
     } else { /* Invalid goal */
         free_matrix(points, n);
         exit_with_error();

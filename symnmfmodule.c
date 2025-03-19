@@ -25,7 +25,7 @@ Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
     PyObject *lstH, *lstW, *ret;
-    double** H, **W, **new_H;
+    double** H, **W;
     int n, k;
     if(!PyArg_ParseTuple(args, "OO", &lstW, &lstH)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
@@ -43,11 +43,10 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
     }
     n = PyList_Size(lstH);
     k = PyList_Size(PyList_GetItem(lstH, 0));
-    new_H = optimizing_H(H, n, k, W); 
-    freeDataPoints(H, n);
+    optimizing_H(H, n, k, W); 
     freeDataPoints(W, n);
-    ret = MatrixToPyList(new_H, n, k);
-    free_matrix(new_H, n);
+    ret = MatrixToPyList(H, n, k);
+    freeDataPoints(H, n);
     return ret;
 }
 
