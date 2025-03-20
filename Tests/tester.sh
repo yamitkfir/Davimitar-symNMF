@@ -2,11 +2,11 @@
 
 # Configuration constants
 SRC_DIR="/home/developer/sp/Davimitar-symNMF" # Directory containing source code files
-# INPUT_DIR="${SRC_DIR}/tests/HW1_tests" # Directory containing input files
-INPUT_DIR="${SRC_DIR}/tests/Claude" # Directory containing input files
+INPUT_DIR="${SRC_DIR}/tests/HW2_tests" # Directory containing input files
+# INPUT_DIR="${SRC_DIR}/tests/Claude" # Directory containing input files
 
 # Input files to test
-INPUT_FILES=("input_1.txt" "input_2.txt")
+INPUT_FILES=("input_1.txt")
 
 # Cluster values to test for symnmf
 K_VALUES=(2 3)
@@ -115,13 +115,8 @@ for input_file in "${INPUT_FILES[@]}"; do
         continue
     fi
     
-    # Test sym goal
     # run_test "${SRC_DIR}/symnmf sym ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/c_sym_${input_file%.txt}.out"
-    
-    # Test ddg goal
     # run_test "${SRC_DIR}/symnmf ddg ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/c_ddg_${input_file%.txt}.out"
-    
-    # Test norm goal
     # run_test "${SRC_DIR}/symnmf norm ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/c_norm_${input_file%.txt}.out"
 done
 
@@ -132,29 +127,17 @@ for input_file in "${INPUT_FILES[@]}"; do
         echo -e "${RED}Skipping tests for missing input file: ${input_file}${RESET}"
         continue
     fi
+
+    run_test "python3 ${SRC_DIR}/symnmf.py 1 sym ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_sym_${input_file%.txt}.out"
+    run_test "python3 ${SRC_DIR}/symnmf.py 1 ddg ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_ddg_${input_file%.txt}.out"
+    run_test "python3 ${SRC_DIR}/symnmf.py 1 norm ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_norm_${input_file%.txt}.out"
     
-    # Test sym goal
-    # run_test "python3 ${SRC_DIR}/symnmf.py 1 sym ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_sym_${input_file%.txt}.out"
-    
-    # Test ddg goal
-    # run_test "python3 ${SRC_DIR}/symnmf.py 1 ddg ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_ddg_${input_file%.txt}.out"
-    
-    # Test norm goal
-    # run_test "python3 ${SRC_DIR}/symnmf.py 1 norm ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_norm_${input_file%.txt}.out"
-    
-    # For symnmf, we need to specify k (number of clusters)
-    for k in "${K_VALUES[@]}"; do
-        run_test "python3 ${SRC_DIR}/symnmf.py $k symnmf ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_symnmf_k${k}_${input_file%.txt}.out"
-    done
+    # for k in "${K_VALUES[@]}"; do
+    #     run_test "python3 ${SRC_DIR}/symnmf.py $k symnmf ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_symnmf_k${k}_${input_file%.txt}.out"
+    # done
 done
 
 # Count the number of files created
 num_files=$(find ${ACTUAL_OUTPUT_DIR} -name "*.txt" | wc -l)
 echo -e "\nAll tests completed! Created ${num_files} output files in ${ACTUAL_OUTPUT_DIR}"
-
-# # List the created files
-# echo -e "\nCreated test output files:"
-# find ${ACTUAL_OUTPUT_DIR} -name "*.txt" | sort | while read file; do
-#     file_size=$(du -h "$file" | cut -f1)
-#     echo "  - $(basename "$file") ($file_size)"
 done

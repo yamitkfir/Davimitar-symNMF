@@ -1,11 +1,28 @@
 # Python interface of your code
+import math
 import numpy as np
+import pandas as pd
 import sys
 import symnmfmodule  # Import our C module
 
 RANDOM_SEED = 1234
 ERROR_MSG = "An Error Has Occurred"
 SEPERATOR = ','
+
+def initH(n, k, W):
+    print(n, k) # TEMP
+    m = np.average(W)
+    high = 2 * math.sqrt(m/k)
+    basel = np.random.uniform(0, np.nextafter(high, high+1), (n, k))
+    return basel
+
+# def initH(n, k, W):
+#     print(n, k)
+#     if isinstance(W, list):
+#         W = pd.DataFrame(W)
+#         m = W.values.mean()
+#         H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
+#         return H
 
 def main():
     np.random.seed(RANDOM_SEED)
@@ -52,20 +69,12 @@ def main():
         elif goal == "symnmf":
             # For symnmf, first of all get the normalized similarity matrix W
             W = symnmfmodule.norm(data_points.tolist())
-            
-            # Initialize H as described in 1.4.1
             n = len(data_points)
-            m = np.mean(W)
-            H_init = np.random.rand(n,k)
-            for row in H_init:
-                die = (SEPERATOR.join(["%.4f" % val for val in row])) 
-                # TEMP TODO for some reason only works with this, as if to take a timeout or smth...
-            H_init *= 2 * np.sqrt(m / k)
+            H_init = initH(n, k, W)
             
-            # TEMP Print initial H
-            print("Initial H2 matrix:")
-            for row in H_init:
-                print(SEPERATOR.join(["%.4f" % val for val in row]))
+            # print("Initial H matrix:") # TEMP Print initial H
+            # for row in H_init:
+            #     die = SEPERATOR.join(["%.4f" % val for val in row])
 
             result = symnmfmodule.symnmf(W, H_init.tolist())
     except Exception as e:
@@ -75,6 +84,7 @@ def main():
     # Pring the resulting matrix
     for row in result:
         print(SEPERATOR.join(["%.4f" % val for val in row]))
+        print('',end='')
 
 if __name__ == "__main__":
     main()

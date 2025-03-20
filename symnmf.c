@@ -421,11 +421,8 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     for (i = 0; i < n; i++){
         D_neg_half[i][i] = 1 / sqrt(D[i][i]);
     }
-    printf("425\n"); /* TEMP */
     temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
-    printf("427\n"); /* TEMP */
     normalized = multiply_matrix(temp, D_neg_half, n, n, n);
-    printf("429\n"); /* TEMP */
     free_matrix(D, n);
     free_matrix(D_neg_half, n);
     free_matrix(temp, n);
