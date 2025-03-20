@@ -157,7 +157,7 @@ double** diagonal_degree_matrix(double** A, int n) {
     }
     /* Allocate memory for each row and init to 0 */
     for (i = 0; i < n; i++) {
-        D[i] = (double*)malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
+        D[i] = (double*)calloc(n, sizeof(double));
         if (D[i] == NULL) {
             free_matrix(D, i);
             exit_with_error();
@@ -370,7 +370,6 @@ double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k
 /*
 Given an array of arrays representing points, the amount of points (n) and the dimension of every point (d),
 returns the n*n similarity matrix of the points. Assumes all points are of dimension d.
-TODO free_matrix(A) once done with it!
 */
 double** similarity_matrix(double** datapoints, int n, int d){
     double** A = malloc(n * sizeof(double*));
@@ -378,7 +377,7 @@ double** similarity_matrix(double** datapoints, int n, int d){
     if(A == NULL)
         return NULL;
     for (i = 0; i < n; i++){
-        A[i] = malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
+        A[i] = malloc(n * sizeof(double));
         if(A[i] == NULL)
         {
             free_matrix(A, i);
@@ -411,7 +410,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
         exit_with_error();
     }
     for (i = 0; i < n; i++){
-        D_neg_half[i] = malloc(n * sizeof(double)); /* TODO david replaced calloc with malloc, ok? */
+        D_neg_half[i] = calloc(n, sizeof(double));
         if(D_neg_half[i] == NULL)
         {
             free_matrix(D, n); free_matrix(D_neg_half, i);
@@ -469,8 +468,6 @@ int main(int argc, char *argv[]) {
             free_matrix(A, n);
             exit_with_error();
         } 
-    } else if (strcmp(goal, "symnmf") == 0) {
-
     } else { /* Invalid goal */
         free_matrix(points, n);
         exit_with_error();
