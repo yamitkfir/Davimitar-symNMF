@@ -10,7 +10,7 @@ ERROR_MSG = "An Error Has Occurred"
 SEPERATOR = ','
 
 def initH(n, k, W):
-    print(n, k) # TEMP
+    print(n, k) # TEMP TODO
     m = np.average(W)
     high = 2 * math.sqrt(m/k)
     basel = np.random.uniform(0, np.nextafter(high, high+1), (n, k))
@@ -69,14 +69,15 @@ def main():
         elif goal == "symnmf":
             # For symnmf, first of all get the normalized similarity matrix W
             W = symnmfmodule.norm(data_points.tolist())
+            print(W[0]) # TODO
             n = len(data_points)
-            H_init = initH(n, k, W)
+            H_init = initH(n, k, W).tolist()
             
             # print("Initial H matrix:") # TEMP Print initial H
             # for row in H_init:
             #     die = SEPERATOR.join(["%.4f" % val for val in row])
-
-            result = symnmfmodule.symnmf(W, H_init.tolist())
+            
+            result = symnmfmodule.symnmf(W, H_init)
     except Exception as e:
         print(f"{ERROR_MSG}: {e}")
         sys.exit(1)

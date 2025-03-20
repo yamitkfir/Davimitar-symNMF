@@ -13,6 +13,10 @@ symnmf,sym,ddg,norm for Python
 #define ERR_SYMNMF_FORMAT "Input must be two matrixes"
 
 /* Function declarations - for module use only */
+static PyObject* symnmf(PyObject* self, PyObject* args);
+static PyObject* sym(PyObject* self, PyObject* args);
+static PyObject* ddg(PyObject* self, PyObject* args);
+static PyObject* norm(PyObject* self, PyObject* args);
 double** getDataPoints(PyObject* lst);
 void freeDataPoints(double** dataPoints, int n);
 PyObject* MatrixToPyList(double** matrix, int n, int m);
@@ -24,6 +28,7 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
+    printf("Enter");
     PyObject *lstH, *lstW, *ret;
     double** H, **W;
     int n, k;
@@ -35,18 +40,25 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
+    printf("Legal");
     H = getDataPoints(lstH);
+    printf("H");
     W = getDataPoints(lstW);
+    printf("W");
     if(H == NULL || W == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
     n = PyList_Size(lstH);
     k = PyList_Size(PyList_GetItem(lstH, 0));
+    printf("enter opti");
     optimizing_H(H, n, k, W); 
+    printf("Got H");
     freeDataPoints(W, n);
+    printf("free W");
     ret = MatrixToPyList(H, n, k);
     freeDataPoints(H, n);
+    printf("free H");
     return ret;
 }
 
@@ -138,6 +150,9 @@ static PyObject* norm(PyObject* self, PyObject* args) {
     freeDataPoints(dataPoints, PyList_Size(lst));
     free_matrix(A, PyList_Size(lst));
     ret = MatrixToPyList(normalized, PyList_Size(lst), PyList_Size(lst));
+
+    print_matrix(normalized, 1, PyList_Size(lst)); // TODO
+
     free_matrix(normalized, PyList_Size(lst));
     return ret;
 }
@@ -199,14 +214,15 @@ double** getDataPoints(PyObject* lst) {
 }
 
 PyObject* MatrixToPyList(double** matrix, int n, int m) {
-    PyObject* lst = PyList_New(n);
+    PyObject* lst = PyList_New(n), *num, *subList;
     int i, j;
     for (i = 0; i < n; i++) {
-        PyObject* subList = PyList_New(m);
+        subList = PyList_New(m);
         for (j = 0; j < m; j++) {
-            PyList_SetItem(subList, j, PyFloat_FromDouble(matrix[i][j]));
+            num = PyFloat_FromDouble(matrix[i][j]);
+            PyList_SET_ITEM(subList, j, num);
         }
-        PyList_SetItem(lst, i, subList);
+        PyList_SET_ITEM(lst, i, subList);
     }
     return lst;
 }
