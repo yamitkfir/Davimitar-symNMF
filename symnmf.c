@@ -337,14 +337,14 @@ void optimizing_H(double** H, int rows_num, int cols_num, double** W)
 Receives a m*n matrix A and a n*k matrix B alongside their dimensions, and returns the product matrix AB.
 */
 double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k) {
+    int i, j, l, p;
     double** product = malloc(m * sizeof(double*));
     if (product == NULL) return NULL;
-    int i, j, l;
     for (i = 0; i < m; i++) {
         product[i] = malloc(k * sizeof(double));
         if (product[i] == NULL) {
-            // Clean up previously allocated memory
-            for (int p = 0; p < i; p++) {
+            /* Clean up previously allocated memory */
+            for (p = 0; p < i; p++) {
                 free(product[p]);
             }
             free(product);

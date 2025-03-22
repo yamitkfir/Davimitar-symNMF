@@ -28,10 +28,10 @@ Given a starting matrix H and a graph laplacian W, perform the optimization algo
 Stages 1.4 and 1.5 in the instructions.
 */
 static PyObject* symnmf(PyObject* self, PyObject* args) {
-    printf("Enter");
     PyObject *lstH, *lstW, *ret;
     double** H, **W;
     int n, k;
+    printf("Enter"); /* TODO saar pls dont forget to delete these prints when youre done with them */
     if(!PyArg_ParseTuple(args, "OO", &lstW, &lstH)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
@@ -150,8 +150,6 @@ static PyObject* norm(PyObject* self, PyObject* args) {
     freeDataPoints(dataPoints, PyList_Size(lst));
     free_matrix(A, PyList_Size(lst));
     ret = MatrixToPyList(normalized, PyList_Size(lst), PyList_Size(lst));
-
-    print_matrix(normalized, 1, PyList_Size(lst)); // TODO
 
     free_matrix(normalized, PyList_Size(lst));
     return ret;

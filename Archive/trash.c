@@ -43,3 +43,13 @@ double** similarity_matrix(double** datapoints, int n, int d) {
     }
     return A;
 }
+
+/* OLD initH in py
+# def initH(n, k, W):
+#     print(n, k)
+#     if isinstance(W, list):
+#         W = pd.DataFrame(W)
+#         m = W.values.mean()
+#         H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
+#         return H
+*/
