@@ -22,7 +22,7 @@ void freeDataPoints(double** dataPoints, int n);
 PyObject* MatrixToPyList(double** matrix, int n, int m);
 
 /*
-Input: Matrixes H, W and more?
+Input: Matrices W and H
 Output: Final H
 Given a starting matrix H and a graph laplacian W, perform the optimization algorithm in the instructions.
 Stages 1.4 and 1.5 in the instructions.
@@ -31,7 +31,6 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
     PyObject *lstH, *lstW, *ret;
     double** H, **W;
     int n, k;
-    printf("Enter"); /* TODO saar pls dont forget to delete these prints when youre done with them */
     if(!PyArg_ParseTuple(args, "OO", &lstW, &lstH)) {
         PyErr_SetString(PyExc_TypeError, ERR_SYMNMF_FORMAT);
         Py_RETURN_NONE;
@@ -40,25 +39,18 @@ static PyObject* symnmf(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
-    printf("Legal");
     H = getDataPoints(lstH);
-    printf("H");
     W = getDataPoints(lstW);
-    printf("W");
     if(H == NULL || W == NULL) {
         PyErr_SetString(PyExc_TypeError, ERR_LIST_FORMAT);
         Py_RETURN_NONE;
     }
     n = PyList_Size(lstH);
     k = PyList_Size(PyList_GetItem(lstH, 0));
-    printf("enter opti");
-    optimizing_H(H, n, k, W); 
-    printf("Got H");
+    H = optimizing_H(H, n, k, W); 
     freeDataPoints(W, n);
-    printf("free W");
     ret = MatrixToPyList(H, n, k);
     freeDataPoints(H, n);
-    printf("free H");
     return ret;
 }
 

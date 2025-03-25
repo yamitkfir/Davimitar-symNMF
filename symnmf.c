@@ -11,7 +11,7 @@
 
 #define max_iter 300
 #define eps 1e-4
-#define denominator_eps 1e-7
+#define denominator_eps 1e-6
 #define beta 0.5
 #define SEPARATOR ","
 #define ERROR_MSG "An Error Has Occurred\n"
@@ -20,7 +20,7 @@
 /* Function declarations */
 double squared_euclidean_dist(double* point1, double* point2, int dimension);
 double** get_column(double** M, int rows_num, int j);
-void optimizing_H(double** H, int rows_num, int cols_num, double** W);
+double** optimizing_H(double** H, int rows_num, int cols_num, double** W);
 int update_H(double** W, double** H, double** new_H, int n, int k);
 double** similarity_matrix(double** datapoints, int n, int d);
 double** diagonal_degree_matrix(double** A, int n);
@@ -31,7 +31,7 @@ void print_matrix(double **matrix, int rows, int cols);
 
 /* Helper functions */
 double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
-double frobenius_norm(double** A, int rows_num, int cols_num, double** B);
+double sq_frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
 double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k); /* A - m x n, B - n x k */
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
@@ -205,21 +205,21 @@ double squared_euclidean_dist(double* point1, double* point2, int dimension)
 }
 
 /*
-Given two NON-EMPTY matrices A,B and A's dimensions, calculates the Frobenius norm of A-B.
+Given two NON-EMPTY matrices A,B and A's dimensions, calculates the squared Frobenius norm of A-B.
 Assumes both matrices have the same dimensions.
 */
-double frobenius_norm(double** A, int rows_num, int cols_num, double** B)
+double sq_frobenius_norm(double** A, int rows_num, int cols_num, double** B)
 { 
     int i,j;
     double sum = 0;
     for(i=0; i < rows_num; i++)
         for(j=0; j < cols_num; j++)
             sum += pow(A[i][j] - B[i][j], 2);
-    return sqrt(sum);
+    return sum;
 }
 
 /*
-Given a n*m matrix M, its amount of rows and an int 0<=j<m, returns a 1*n matrix consisting only of M's j-th column.
+Given a n*m matrix M, its amount of rows and an int 0<=j<m, returns a 1*n matrix consisting only of M's j-th column, transposed.
 If memory allocation error occurs, returns a null pointer.
 */
 double** get_column(double** M, int rows_num, int j)
@@ -245,13 +245,15 @@ Given the current iteration's H matrix, a pointer to the new H matrix and all ne
 */
 void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j)
 {
-    float numerator, denominator, cell_multiplier;
+    double numerator, denominator, cell_multiplier;
     numerator = matrix_mult_cell(W, n, H, i, j);
     denominator = matrix_mult_cell(H, k, HtH_col, i, 0) + denominator_eps; /* This epsilon is added to avoid division by zero. */
     cell_multiplier = numerator / denominator;
+    cell_multiplier *= beta;
     cell_multiplier += (1 - beta);
     new_H[i][j] = H[i][j]*cell_multiplier;
 }
+
 
 /*
 Given a n*n graph laplacian W, a current n*k iteration matrix H and a pointer to an ALREADY EXISTING n*k matrix new_H,
@@ -293,11 +295,12 @@ int update_H(double** W, double** H, double** new_H, int n, int k)
     return 0;
 }
 
+
 /*
 Given a starting matrix H, its dimensions and a graph laplacian W, perform the optimization algorithm INPLACE in the instructions.
-Returns an optimized H.
+Returns an optimized H (Will use the same pointer that H was given through).
 */
-void optimizing_H(double** H, int rows_num, int cols_num, double** W)
+double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
 {
     int i, j;
     double **tmp, **new_H = (double**)malloc(rows_num * sizeof(double*));
@@ -324,13 +327,14 @@ void optimizing_H(double** H, int rows_num, int cols_num, double** W)
             free_matrix(new_H, rows_num);
             exit_with_error();
         }
-        if(frobenius_norm(new_H, rows_num, cols_num , H) < eps) /* We have reached convergence - end the loop. */
+        if(sq_frobenius_norm(new_H, rows_num, cols_num , H) < eps) /* We have reached convergence - end the loop. */
             i = max_iter + 1;
         tmp = H; /* Always makes the new matrix be in pointer H for code consistency. */
         H = new_H;
         new_H = tmp;
     }
     free_matrix(new_H, rows_num);
+    return H;
 }
 
 /*
