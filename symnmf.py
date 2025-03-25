@@ -18,10 +18,23 @@ def initH(n, k, W):
     # basel = np.random.uniform(0, np.nextafter(high, high+1), (n, k))
     # return basel
 
+def check_validity(goal, k, data_points):
+    '''
+    Checks the validity of the goal and k inputs. If one is invalid, prints error and terminates program.
+    '''
+    # Check if goal is valid
+    if goal not in ["symnmf", "sym", "ddg", "norm"]:
+        print(ERROR_MSG)
+        sys.exit(1)
+    
+    # Check if k is valid
+    if k >= len(data_points) or k <= 0:
+        print(ERROR_MSG)
+        sys.exit(1)
+
 def main():
     np.random.seed(RANDOM_SEED)
-    # Read CMD args
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 4: # Read CMD args
         print(ERROR_MSG)
         print(sys.argv)
         sys.exit(1)
@@ -32,36 +45,20 @@ def main():
         sys.exit(1)
     goal = sys.argv[2]
     file_name = sys.argv[3]
-    
-    # Check if goal is valid
-    if goal not in ["symnmf", "sym", "ddg", "norm"]:
-        print(ERROR_MSG)
-        sys.exit(1)
-    
-    # Read data points from file
-    try:
+    try: # Read data points from file
         data_points = np.loadtxt(file_name, delimiter = SEPERATOR)
-        # np.loadtxt() is a NumPy function that
-        # reads data from a text file and creates a NumPy array.
     except:
         print(ERROR_MSG)
         sys.exit(1)
-    
-    # Check if k is valid
-    if k >= len(data_points) or k <= 0:
-        print(ERROR_MSG)
-        sys.exit(1)
-    
-    # Call fitting function according to goal
-    try:
+    check_validity(goal, k, data_points)
+    try: # Call fitting function according to goal
         if goal == "sym":
             result = symnmfmodule.sym(data_points.tolist())
         elif goal == "ddg":
             result = symnmfmodule.ddg(data_points.tolist())
         elif goal == "norm":
             result = symnmfmodule.norm(data_points.tolist())
-        elif goal == "symnmf":
-            # For symnmf, first of all get the normalized similarity matrix W
+        elif goal == "symnmf": # For symnmf, first of all get the normalized similarity matrix W
             W = symnmfmodule.norm(data_points.tolist())
             n = len(data_points)
             H_init = initH(n, k, W).tolist()
@@ -69,9 +66,7 @@ def main():
     except Exception as e:
         print(f"{ERROR_MSG}: {e}")
         sys.exit(1)
-    
-    # Pring the resulting matrix
-    for row in result:
+    for row in result: # Print the resulting matrix
         print(SEPERATOR.join(["%.4f" % val for val in row]))
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ double **read_data(const char *filename, int *n, int *d);
 void print_matrix(double **matrix, int rows, int cols);
 
 /* Helper functions */
+void run_selected_algorithm(const char* goal, double** A, double** points, int n, int d, double** result_pointer);
 double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
 double sq_frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
@@ -130,6 +131,10 @@ void free_matrix(double **data, int n) {
     free(data);
 }
 
+
+/*
+Receives a matrix alongside its dimensions, and prints it out row by row.
+*/
 void print_matrix(double **matrix, int rows, int cols) {
     int i, j;
     
@@ -434,17 +439,13 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
 
 
 /*
-CMD args: argv[1] - goal (sym, ddg, or norm), argv[2] - file path
+Receives a String for which algorithm to run, a temporary matrix pointer A, a n*d matrix representing points and its dimensions, and a pointer to a matrix in which hold the algorithm's result. If an error occurs, frees all memory and exits program with error message.
 */
-int main(int argc, char *argv[]) {
-    double **points, **A = NULL , **result = NULL;
-    int n, d;
-    char *goal = argv[1], *filename = argv[2];
-    if (argc != 3) { exit_with_error(); } /* Check for correct num of CMD args */
-    points = read_data(filename, &n, &d); /* Read data points from input file */
+void run_selected_algorithm(const char* goal, double** A, double** points, int n, int d, double** result_pointer)
+{
     if (strcmp(goal, "sym") == 0) { /* Goal: calculate similarity matrix */
-        result = similarity_matrix(points, n, d); 
-        if (result == NULL) {
+        result_pointer = similarity_matrix(points, n, d); 
+        if (result_pointer == NULL) {
             free_matrix(points, n);
             exit_with_error();
         }
@@ -454,8 +455,8 @@ int main(int argc, char *argv[]) {
             free_matrix(points, n);
             exit_with_error();
         }
-        result = diagonal_degree_matrix(A, n);
-        if (result == NULL) {
+        result_pointer = diagonal_degree_matrix(A, n);
+        if (result_pointer == NULL) {
             free_matrix(points, n);
             free_matrix(A, n);
             exit_with_error();
@@ -466,8 +467,8 @@ int main(int argc, char *argv[]) {
             free_matrix(points, n);
             exit_with_error();
         }
-        result = normalized_similarity_matrix(A, n);
-        if (result == NULL) {
+        result_pointer = normalized_similarity_matrix(A, n);
+        if (result_pointer == NULL) {
             free_matrix(points, n);
             free_matrix(A, n);
             exit_with_error();
@@ -476,11 +477,22 @@ int main(int argc, char *argv[]) {
         free_matrix(points, n);
         exit_with_error();
     }
+}
+
+
+/*
+CMD args: argv[1] - goal (sym, ddg, or norm), argv[2] - file path
+*/
+int main(int argc, char *argv[]) {
+    double **points , **A = NULL, **result = NULL;
+    int n, d;
+    char *goal = argv[1], *filename = argv[2];
+    if (argc != 3) { exit_with_error(); } /* Check for correct num of CMD args */
+    points = read_data(filename, &n, &d); /* Read data points from input file */
+    run_selected_algorithm(goal, A, points, n ,d, result);
     print_matrix(result, n, n);
     free_matrix(points, n);
     free_matrix(result, n);
-    if (strcmp(goal, "sym") != 0) { /* Only free A if it was actually allocated */
-        free_matrix(A, n);
-    }
+    if (strcmp(goal, "sym") != 0) { free_matrix(A, n); } /* Only free A if it was actually allocated */
     return 0;
 }

@@ -69,6 +69,33 @@ def symnmf_clustering(X, k):
     labels = np.argmax(H, axis = 1)
     return labels
 
+def run_clustering_algos(X, k, filename):
+    """
+    Expects 3 args from code:
+    1. X: numpy array of data points
+    2. k: Number of clusters
+    3. filename: Path to the input file
+    Prints the silhouette scores of the K Means clustering algorithm and the SymNMF clustering algorithm
+    """
+    # Perform HW1-Kmeans clustering and calc silhouette score
+    try:
+        kmeans_labels = kmeans_clustering(X, k, filename)
+        kmeans_score = silhouette_score(X, kmeans_labels)
+    except:
+        print(ERROR_MSG)
+        return
+    
+    # Perform Symnmf clustering and calc silhouette score
+    try:
+        symnmf_labels = symnmf_clustering(X, k)
+        symnmf_score = silhouette_score(X, symnmf_labels)
+    except:
+        print(ERROR_MSG)
+        sys.exit(1)
+    
+    print(f"nmf: {symnmf_score:.4f}")
+    print(f"kmeans: {kmeans_score:.4f}")
+
 def main():
     """    
     Expects 2 CMD args:
@@ -96,24 +123,8 @@ def main():
         print(ERROR_MSG)
         return
     
-    # Perform HW1-Kmeans clustering and calc silhouette score
-    try:
-        kmeans_labels = kmeans_clustering(X, k, filename)
-        kmeans_score = silhouette_score(X, kmeans_labels)
-    except:
-        print(ERROR_MSG)
-        return
-    
-    # Perform Symnmf clustering and calc silhouette score
-    try:
-        symnmf_labels = symnmf_clustering(X, k)
-        symnmf_score = silhouette_score(X, symnmf_labels)
-    except:
-        print(ERROR_MSG)
-        sys.exit(1)
-    
-    print(f"nmf: {symnmf_score:.4f}")
-    print(f"kmeans: {kmeans_score:.4f}")
+    run_clustering_algos(X, k, filename)
+
 
 if __name__ == "__main__":
     main()

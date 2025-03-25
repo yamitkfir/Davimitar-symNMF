@@ -20,6 +20,7 @@ double **read_data(const char *filename, int *n, int *d);
 void print_matrix(double **matrix, int rows, int cols);
 
 /* Helper functions */
+void run_selected_algorithm(const char* goal, double** A, double** points, int n, int d, double** result_pointer);
 double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
 double sq_frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
