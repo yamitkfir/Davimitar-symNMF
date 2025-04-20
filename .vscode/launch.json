@@ -10,8 +10,8 @@
             "console": "integratedTerminal",
             "args": [
                 "3",
-                "symnmf",
-                "${workspaceFolder}/Tests/Claude/input_1.txt"
+                "sym",
+                "${workspaceFolder}/Tests/HW2_tests/input_1.txt"
             ]
         },
         {

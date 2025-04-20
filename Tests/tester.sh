@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Configuration constants
-SRC_DIR="/home/developer/sp/Davimitar-symNMF" # Directory containing source code files
-INPUT_DIR="${SRC_DIR}/tests/HW2_tests" # Directory containing input files
+SRC_DIR="/home/developer/sp/Davimitar-symNMF/project" # Directory containing source code files
+INPUT_DIR="/home/developer/sp/Davimitar-symNMF/Tests" # Directory containing input files
 # INPUT_DIR="${SRC_DIR}/tests/Claude" # Directory containing input files
 
 # Input files to test
-INPUT_FILES=("input_1.txt")
+INPUT_FILES=("altar.txt")
 
 # Cluster values to test for symnmf
 K_VALUES=(2 3)
@@ -128,13 +128,13 @@ for input_file in "${INPUT_FILES[@]}"; do
         continue
     fi
 
-    run_test "python3 ${SRC_DIR}/symnmf.py 1 sym ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_sym_${input_file%.txt}.out"
-    run_test "python3 ${SRC_DIR}/symnmf.py 1 ddg ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_ddg_${input_file%.txt}.out"
-    run_test "python3 ${SRC_DIR}/symnmf.py 1 norm ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_norm_${input_file%.txt}.out"
+    # run_test "python3 ${SRC_DIR}/symnmf.py 1 sym ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_sym_${input_file%.txt}.out"
+    # run_test "python3 ${SRC_DIR}/symnmf.py 1 ddg ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_ddg_${input_file%.txt}.out"
+    # run_test "python3 ${SRC_DIR}/symnmf.py 1 norm ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_norm_${input_file%.txt}.out"
     
-    # for k in "${K_VALUES[@]}"; do
-    #     run_test "python3 ${SRC_DIR}/symnmf.py $k symnmf ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_symnmf_k${k}_${input_file%.txt}.out"
-    # done
+    for k in "${K_VALUES[@]}"; do
+        run_test "python3 ${SRC_DIR}/symnmf.py $k symnmf ${INPUT_DIR}/${input_file}" "${OUTPUT_DIR}/py_symnmf_k${k}_${input_file%.txt}.out"
+    done
 done
 
 # Count the number of files created

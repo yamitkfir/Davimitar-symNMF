@@ -11,7 +11,7 @@
 
 #define max_iter 300
 #define eps 1e-4
-#define denominator_eps 1e-6
+#define denominator_eps 1e-7
 #define beta 0.5
 #define SEPARATOR ","
 #define ERROR_MSG "An Error Has Occurred\n"
@@ -30,7 +30,7 @@ double **read_data(const char *filename, int *n, int *d);
 void print_matrix(double **matrix, int rows, int cols);
 
 /* Helper functions */
-void run_selected_algorithm(const char* goal, double** A, double** points, int n, int d, double** result_pointer);
+double** run_selected_algorithm(const char* goal, double** A, double** points, int n, int d);
 double **create_points_matrix(FILE *fp, char line[], int *n, int *d);
 double sq_frobenius_norm(double** A, int rows_num, int cols_num, double** B);
 void free_matrix(double** M, int len);
@@ -265,29 +265,24 @@ Given a n*n graph laplacian W, a current n*k iteration matrix H and a pointer to
 changes the values in the new_H matrix IN PLACE to be the new values, as per the instructions (See 1.4.2).
 If memory allocation error occurs, returns 1. if finished successfully, returns 0.
 */
-int update_H(double** W, double** H, double** new_H, int n, int k)
-{
+int update_H(double** W, double** H, double** new_H, int n, int k){
     double** Ht_row; /* The needed row in H^T to calculate the matrix product (H^T)H. Will be a 1*n matrix.*/
     int i,j,s;
     double** HtH_col = (double**)malloc(k * sizeof(double*)); /* The needed column in (H^T)H to calculate the denominator. Is a k*1 matrix. */
     if(HtH_col == NULL)
         return 1;
-    for(j=0; j<k; j++)
-    {
-        HtH_col[j] = (double*)malloc(sizeof(double));
+    for(j=0; j<k; j++){
+        HtH_col[j] = (double*)calloc(1, sizeof(double));
         if(HtH_col[j] == NULL)
         {
             free_matrix(HtH_col, j);
             return 1;
         }
     }
-    for(j=0; j<k; j++)
-    {
-        for(s=0; s<k; s++) /* Calculates the necessary column of (H^T)H for the denominator. */
-        {
+    for(j=0; j<k; j++){
+        for(s=0; s<k; s++){ /* Calculates the necessary column of (H^T)H for the denominator. */
             Ht_row = get_column(H, n, s);
-            if(Ht_row == NULL)
-            {
+            if(Ht_row == NULL){
                 free_matrix(HtH_col, k);
                 return 1;
             }
@@ -316,7 +311,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
     }
     for (j=0; j < rows_num; j++)
     {
-        new_H[j] = (double*)malloc(cols_num * sizeof(double));
+        new_H[j] = (double*)calloc(cols_num, sizeof(double));
         if(new_H[j] == NULL)
         {
             free_matrix(H, rows_num);
@@ -412,7 +407,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     int i;
     double** temp, **normalized;
     double** D = diagonal_degree_matrix(sim_matrix, n);
-    double** D_neg_half = malloc(n * sizeof(double*));
+    double** D_neg_half = calloc(n, sizeof(double*));
     if(D_neg_half == NULL)
     {
         free_matrix(D, n);
@@ -427,7 +422,7 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
         }
     }
     for (i = 0; i < n; i++){
-        D_neg_half[i][i] = 1 / sqrt(D[i][i]);
+        D_neg_half[i][i] = 1 / sqrt(D[i][i] + denominator_eps);
     }
     temp = multiply_matrix(D_neg_half, sim_matrix, n, n, n);
     normalized = multiply_matrix(temp, D_neg_half, n, n, n);
@@ -439,13 +434,14 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
 
 
 /*
-Receives a String for which algorithm to run, a temporary matrix pointer A, a n*d matrix representing points and its dimensions, and a pointer to a matrix in which hold the algorithm's result. If an error occurs, frees all memory and exits program with error message.
+Receives a String for which algorithm to run, a temporary matrix pointer A, a n*d matrix representing points and its dimensions, and returns the algorithm's result matrix.
 */
-void run_selected_algorithm(const char* goal, double** A, double** points, int n, int d, double** result_pointer)
-{
+double** run_selected_algorithm(const char* goal, double** A, double** points, int n, int d) {
+    double** result = NULL;
+
     if (strcmp(goal, "sym") == 0) { /* Goal: calculate similarity matrix */
-        result_pointer = similarity_matrix(points, n, d); 
-        if (result_pointer == NULL) {
+        result = similarity_matrix(points, n, d); 
+        if (result == NULL) {
             free_matrix(points, n);
             exit_with_error();
         }
@@ -455,10 +451,10 @@ void run_selected_algorithm(const char* goal, double** A, double** points, int n
             free_matrix(points, n);
             exit_with_error();
         }
-        result_pointer = diagonal_degree_matrix(A, n);
-        if (result_pointer == NULL) {
+        result = diagonal_degree_matrix(A, n);
+        free_matrix(A, n);
+        if (result == NULL) {
             free_matrix(points, n);
-            free_matrix(A, n);
             exit_with_error();
         }
     } else if (strcmp(goal, "norm") == 0) { /* Goal: calculate normalized similarity matrix */
@@ -467,16 +463,17 @@ void run_selected_algorithm(const char* goal, double** A, double** points, int n
             free_matrix(points, n);
             exit_with_error();
         }
-        result_pointer = normalized_similarity_matrix(A, n);
-        if (result_pointer == NULL) {
+        result = normalized_similarity_matrix(A, n);
+        free_matrix(A, n);
+        if (result == NULL) {
             free_matrix(points, n);
-            free_matrix(A, n);
             exit_with_error();
         } 
     } else { /* Invalid goal */
         free_matrix(points, n);
         exit_with_error();
     }
+    return result;
 }
 
 
@@ -484,15 +481,20 @@ void run_selected_algorithm(const char* goal, double** A, double** points, int n
 CMD args: argv[1] - goal (sym, ddg, or norm), argv[2] - file path
 */
 int main(int argc, char *argv[]) {
-    double **points , **A = NULL, **result = NULL;
+    double **points;
+    double **A = NULL;
+    double **result = NULL;
     int n, d;
-    char *goal = argv[1], *filename = argv[2];
+    char *goal, *filename;
     if (argc != 3) { exit_with_error(); } /* Check for correct num of CMD args */
+    goal = argv[1];
+    filename = argv[2];
     points = read_data(filename, &n, &d); /* Read data points from input file */
-    run_selected_algorithm(goal, A, points, n ,d, result);
-    print_matrix(result, n, n);
+    result = run_selected_algorithm(goal, A, points, n, d); /* Get the result matrix */
+    print_matrix(result, n, n); /* Print the result matrix */
     free_matrix(points, n);
     free_matrix(result, n);
     if (strcmp(goal, "sym") != 0) { free_matrix(A, n); } /* Only free A if it was actually allocated */
+
     return 0;
 }

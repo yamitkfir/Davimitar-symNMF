@@ -27,10 +27,10 @@ def check_validity(goal, k, data_points):
         print(ERROR_MSG)
         sys.exit(1)
     
-    # Check if k is valid
-    if k >= len(data_points) or k <= 0:
-        print(ERROR_MSG)
-        sys.exit(1)
+    # Check if k is valid # TODO - don't validate K
+    # if k >= len(data_points) or k <= 0:
+    #     print(ERROR_MSG)
+    #     sys.exit(1)
 
 def main():
     np.random.seed(RANDOM_SEED)
