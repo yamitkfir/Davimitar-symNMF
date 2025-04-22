@@ -38,6 +38,7 @@ double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
 void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j);
 void exit_with_error();
+void free_mat_and_exit(double **mat, int n);
 
 
 void exit_with_error() 
@@ -45,6 +46,12 @@ void exit_with_error()
 {
     printf(ERROR_MSG);
     exit(1);
+}
+
+/* Quality of life in case there is just one matrix to free before exiting. */
+void free_mat_and_exit(double **mat, int n) {
+    free_matrix(mat, n);
+    exit_with_error();
 }
 
 /*
@@ -164,8 +171,7 @@ double** diagonal_degree_matrix(double** A, int n) {
     for (i = 0; i < n; i++) {
         D[i] = (double*)calloc(n, sizeof(double));
         if (D[i] == NULL) {
-            free_matrix(D, i);
-            exit_with_error();
+            free_mat_and_exit(D, i);
         }
     }
     /* Calc degrees */
@@ -306,8 +312,7 @@ double** optimizing_H(double** H, int rows_num, int cols_num, double** W)
     double **tmp, **new_H = (double**)malloc(rows_num * sizeof(double*));
     if (new_H == NULL)
     {
-        free_matrix(H, rows_num);
-        exit_with_error();
+        free_mat_and_exit(H, rows_num);
     }
     for (j=0; j < rows_num; j++)
     {
@@ -410,14 +415,14 @@ double** normalized_similarity_matrix(double** sim_matrix, int n){
     double** D_neg_half = calloc(n, sizeof(double*));
     if(D_neg_half == NULL)
     {
-        free_matrix(D, n);
-        exit_with_error();
+        free_mat_and_exit(D, n);
     }
     for (i = 0; i < n; i++){
         D_neg_half[i] = calloc(n, sizeof(double));
         if(D_neg_half[i] == NULL)
         {
-            free_matrix(D, n); free_matrix(D_neg_half, i);
+            free_matrix(D, n);
+            free_matrix(D_neg_half, i);
             exit_with_error();
         }
     }
@@ -442,36 +447,30 @@ double** run_selected_algorithm(const char* goal, double** A, double** points, i
     if (strcmp(goal, "sym") == 0) { /* Goal: calculate similarity matrix */
         result = similarity_matrix(points, n, d); 
         if (result == NULL) {
-            free_matrix(points, n);
-            exit_with_error();
+            free_mat_and_exit(points, n);
         }
     } else if (strcmp(goal, "ddg") == 0) { /* Goal: calculate diagonal degree matrix */
         A = similarity_matrix(points, n, d);
         if (A == NULL) { /* Couldn't allocate space for A */
-            free_matrix(points, n);
-            exit_with_error();
+            free_mat_and_exit(points, n);
         }
         result = diagonal_degree_matrix(A, n);
         free_matrix(A, n);
         if (result == NULL) {
-            free_matrix(points, n);
-            exit_with_error();
+            free_mat_and_exit(points, n);
         }
     } else if (strcmp(goal, "norm") == 0) { /* Goal: calculate normalized similarity matrix */
         A = similarity_matrix(points, n, d);
         if (A == NULL) { /* Couldn't allocate space for A */
-            free_matrix(points, n);
-            exit_with_error();
+            free_mat_and_exit(points, n);
         }
         result = normalized_similarity_matrix(A, n);
         free_matrix(A, n);
         if (result == NULL) {
-            free_matrix(points, n);
-            exit_with_error();
+            free_mat_and_exit(points, n);
         } 
     } else { /* Invalid goal */
-        free_matrix(points, n);
-        exit_with_error();
+        free_mat_and_exit(points, n);
     }
     return result;
 }

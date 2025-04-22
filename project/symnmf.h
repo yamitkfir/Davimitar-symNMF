@@ -28,5 +28,6 @@ double** multiply_matrix(double** matrixA, double** matrixB, int m, int n, int k
 double matrix_mult_cell(double** A, int A_cols_num ,double** B, int i, int j);
 void update_H_cell(double **W, double **H, double **new_H, double **HtH_col, int n, int k, int i, int j);
 void exit_with_error();
+void free_mat_and_exit(double **mat, int n);
 
 #endif
